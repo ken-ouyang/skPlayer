@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="./src/skPlayer.css">
+    <script src="./src/skPlayer.js"></script>
     <meta charset="UTF-8">
     <title>SKPlayer</title>
     <meta name="viewport" content="width=440,user-scalable=no">
@@ -48,19 +50,19 @@
             }
         }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <!--iframe frameborder="0" scrolling="0" width="91px" height="20px" src="https://ghbtns.com/github-btn.html?user=wangpengfei15975&repo=skPlayer&type=star&count=true"></iframe-->
     <h1>SKPlayer 3.0</h1>
-    <p>一款简约好看的HTML5音乐播放器</p>
+    <!--p>一款简约好看的HTML5音乐播放器</p>
     <p>
         <img src="https://img.shields.io/npm/v/skplayer.svg" alt="npm">
         <img src="https://img.shields.io/npm/l/skplayer.svg" alt="license">
         <img src="https://img.shields.io/npm/dt/skplayer.svg" alt="downloads">
         <img src="https://img.shields.io/badge/made%20by-Scott-orange.svg" alt="made by">
-    </p>
+    </p-->
     <div id="skPlayer"></div>
-    <div class="container">
+    <!--div class="container">
         <button onclick="player.play()">player.play()</button>
         <button onclick="player.pause()">player.pause()</button>
         <button onclick="player.toggle()">player.toggle()</button>
@@ -115,8 +117,8 @@
         <p>修复了旧版存在的问题，请及时更新v3.0最新版</p>
         <h2>注：</h2>
         <p>由于兼容性问题，移动端暂不支持自动播放和音量控制，同时toggleMute()方法在移动端可能存在异常，以及其他的一些未知BUG</p>
-    </div>
-    <script src="./dist/skPlayer.min.js"></script>
+    </div-->
+    
     <script>
         var player = new skPlayer({
             autoplay: true,

@@ -1,7 +1,7 @@
 //SKPlayer
 console.log('%cSKPlayer 3.0.8', 'color:#D94240');
 
-require('./skPlayer.scss');
+//require('./src/skPlayer.scss');
 
 const Util = {
     leftDistance: (el) => {

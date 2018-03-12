@@ -3,15 +3,15 @@
  */
 
 //const
-$white:#FFF;              //主白
-$red:#D94240;             //主红
-$gray:#6A6B6F;            //主灰
-$gray_grandma:#666;       //奶奶灰
-$line:#EBEBF2;            //进度条
-$line_loading:#D3D3E0;    //加载进度条
-$list_bg:#B0B0B0;         //列表项背景
-$list_hover:#DDD;         //列表项hover
-$list_border:#E9E9E9;     //列表项边框
+$white:#FFF;              
+$red:#D94240;             
+$gray:#6A6B6F;            
+$gray_grandma:#666;       
+$line:#EBEBF2;            
+$line_loading:#D3D3E0;    
+$list_bg:#B0B0B0;         
+$list_hover:#DDD;         
+$list_border:#E9E9E9;     
 
 //mixin
 @mixin user-select($value:none){
