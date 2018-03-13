@@ -53,7 +53,7 @@
   </head>
   <body>
     <!--iframe frameborder="0" scrolling="0" width="91px" height="20px" src="https://ghbtns.com/github-btn.html?user=wangpengfei15975&repo=skPlayer&type=star&count=true"></iframe-->
-    <h1>SKPlayer 3.0</h1>
+    <h1>Music Player CSCI3280</h1>
     <!--p>一款简约好看的HTML5音乐播放器</p>
     <p>
         <img src="https://img.shields.io/npm/v/skplayer.svg" alt="npm">
@@ -120,25 +120,30 @@
     </div-->
     
     <script>
+	
 		var list = require('./music-list.json');
 		console.log(list);
         var player = new skPlayer({
             autoplay: true,
-            music: {
+            musicList: {
                 //type: 'cloud',
                 //source: 317921676
-				type: 'file',
+				listType: 'normal',
 				source: [
-				//必需项,音乐文件数组
+				//现在不必须
 					{
-						name: '飘向北方',
-						//必需项,歌名
-						author: 'G.E.M. 邓紫棋',
-						//必需项,歌手
-						src: 'C:/CloudMusic/飘向北方.mp3',
-						//必需项,音乐文件
-						cover: 'C:/CloudMusic/hqdefault.jpg'
-						//必需项,封面图片
+						type: 'local',
+						name: 'Paris',
+						author: 'Karen Souza',
+						path: 'C:/CloudMusic/Karen Souza - Paris.mp3',
+						cover: 'C:/Users/Amors/Desktop/test.jpg'
+					},
+					{
+						type: 'local',
+						name: '極楽浄土',
+						author: 'MARiA',
+						path: 'C:/CloudMusic/MARiA - 極楽浄土.mp3',
+						cover: 'C:/Users/Amors/Desktop/test2.jpg'
 					}
 				]
             }
