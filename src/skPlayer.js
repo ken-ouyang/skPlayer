@@ -117,7 +117,7 @@ class skPlayer {
             this.init();
             this.bind();
         }else if(this.listType === 'cloud'){
-            this.root.innerHTML = '<p class="skPlayer-tip-loading">LOADING</p>';
+            
             Util.ajax({
                 url: baseUrl + 'playlist/detail?id=' + this.option.musicList.source,
                 beforeSend: () => {
@@ -125,16 +125,16 @@ class skPlayer {
                 },
                 success: (data) => {
                     console.log('歌单拉取成功！');
-                    data = JSON.parse(data);
-					console.log(this.musicList);
+                    this.option.musicList.source = JSON.parse(data);
 					this.musicList = [];
 					for(let i in this.option.musicList.source){
 						this.option.musicList.source[i].type = 'cloud';
 						this.option.musicList.source[i].path = baseUrl + 'music/url?id=' + this.option.musicList.source[i].song_id;
 						this.musicList.push(new Music(this.option.musicList.source[i]));
 					}
-                    //this.init();
-                    //this.bind();
+					console.log(this.musicList);
+                    this.init();
+                    this.bind();
                 },
                 fail: (status) => {
                     console.error('歌单拉取失败！ 错误码：' + status);
@@ -502,6 +502,7 @@ class skPlayer {
 		}
 	}
 	
+	//done
 	addFileToList(filePath){
 		let music = new Music({
 			type: 'local',
