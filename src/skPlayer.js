@@ -1,7 +1,7 @@
 //SKPlayer
 console.log('%cSKPlayer 3.0.8', 'color:#D94240');
 
-//require('./src/skPlayer.scss');
+//require('./src/skPlayer.scss'); //changed to use ./src/skPlayer.css
 
 const Util = {
     leftDistance: (el) => {
@@ -132,10 +132,10 @@ class skPlayer {
                         <div class="skPlayer-line"></div>
                     </div>
                 </div>
+				<i class="${this.option.mode === 'singleloop' ? 'skPlayer-mode skPlayer-mode-loop' : 'skPlayer-mode'}"></i>
                 <div class="skPlayer-list-switch">
                     <i class="skPlayer-list-icon"></i>
                 </div>
-                <i class="${this.option.mode === 'singleloop' ? 'skPlayer-mode skPlayer-mode-loop' : 'skPlayer-mode'}"></i>
             </div>
             <ul class="skPlayer-list">
         `;
