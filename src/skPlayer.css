@@ -440,11 +440,16 @@
 }
 #skPlayer .skPlayer-lyric-block li {
   text-align: center;
-  font-size: 13;
-  color: #6a6b6f;
-  height: 26px;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #999;
+  height: 16px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  transition: color 0.5s;
+  -moz-transition: color 0.5s; /* Firefox 4 */
+  -webkit-transition: color 0.5s; /* Safari 和 Chrome */
+  -o-transition: color 0.5s; /* Opera */
 }
 #skPlayer .skPlayer-lyric-block li.curLyric{
   color: #2b2929;

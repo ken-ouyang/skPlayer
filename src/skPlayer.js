@@ -58,6 +58,20 @@ const readFile = (filepath, options) => {
   });
 };
 
+const scrollYWithDistance = (element,scrollDistance,scrollDuration) => {
+    // element.scrollTop += scrollDistance;
+    let scrollStep = scrollDistance / (scrollDuration * 200/3 ),
+        scrollYTarget = element.scrollTop + scrollDistance,
+        scrollInterval = setInterval( () => {
+            if ( (scrollDistance > 0 && element.scrollTop < scrollYTarget) || (scrollDistance < 0 && element.scrollTop > scrollYTarget)  ) {
+                element.scrollTop += scrollStep;
+            }
+            else{
+                clearInterval(scrollInterval);
+            }
+        }, 15);
+}
+
 let instance = false;
 const baseUrl = 'http://120.79.36.48/';//163
 const default_cover_path = "./src/icon/default_cover.png";
@@ -123,6 +137,8 @@ class skPlayer {
 		this.musicsChosenCallback = this.musicsChosenCallback.bind(this);
         this.browseLyricFile = this.browseLyricFile.bind(this);
         this.displayLyricFromFile = this.displayLyricFromFile.bind(this);
+        this.updateLyricPosition = this.updateLyricPosition.bind(this);
+        this.saveMusicListToJSON = this.saveMusicListToJSON.bind(this);
 
 		this.root.innerHTML = this.template();
         if(this.listType === 'normal'){
@@ -292,6 +308,8 @@ class skPlayer {
             let percent = this.audio.currentTime / this.audio.duration;
             this.dom.timeline_played.style.width = Util.percentFormat(percent);
             this.dom.timetext_played.innerHTML = Util.timeFormat(this.audio.currentTime);
+
+            this.updateLyricPosition(this.audio.currentTime);
         });
         this.audio.addEventListener('seeked', (e) => {
             this.play();
@@ -400,6 +418,13 @@ class skPlayer {
            this.audio.currentTime = 0;
         }
 		*/
+        //switch to another music
+        let lis = this.dom.lyricul.querySelectorAll("li");
+        if(lis.length){
+            for(let i = lis.length-1; i>=0; i--){
+                this.dom.lyricul.removeChild(lis[i]);
+            }
+        }
 		this.audio.currentTime = 0;
         this.dom.musiclist.children[index].classList.add('skPlayer-curMusic');
         this.dom.name.innerHTML = this.musicList[index].name;
@@ -410,6 +435,16 @@ class skPlayer {
             this.play();
         }else if(this.musicList[index].type === 'cloud'){
             this.playCloudMusic(index);
+        }
+
+        if(this.musicList[index].lyric == 'none'){
+            if(this.dom.lyricblock.classList.contains('skPlayer-lyric-in'))
+                this.dom.lyricblock.classList.remove('skPlayer-lyric-in')
+        }
+        else{
+            if(!this.dom.lyricblock.classList.contains('skPlayer-lyric-in'))
+                this.dom.lyricblock.classList.add('skPlayer-lyric-in')
+            this.displayLyricFromFile(this.musicList[index].lyric,index);
         }
     }
 
@@ -514,6 +549,7 @@ class skPlayer {
 	clearList(){
 		this.dom.musiclist.innerHTML = '';
 		this.musicList = [];
+        this.saveMusicListToJSON();
 		this.pause();
 	}
 	
@@ -534,7 +570,7 @@ class skPlayer {
 		}
 	}
 	
-	
+	//done
 	addFileToList(filePath){
         jsmediatags.read(filePath,{
             onSuccess: (tags) => {
@@ -549,9 +585,9 @@ class skPlayer {
                 this.addMusicToList('local',filePath,'unknown','unknown',default_cover_path);
             }
         });
-		
 	}
 
+    //done
     addMusicToList(type,path,title,artist,cover){
         let music = new Music({
             type: type,
@@ -570,6 +606,7 @@ class skPlayer {
             this.switchMusic(0);
         }
         //should also update the music-list.json
+        this.saveMusicListToJSON();
     }
 	
 	//done
@@ -605,16 +642,25 @@ class skPlayer {
 	//done
     browseLyricFile(){
         console.log("browse lyric file");
-        dialog.showOpenDialog({
-            filters:[{name: 'Lyric', extensions: ['lrc']}],
-            properties:['openFile']
-            }, this.displayLyricFromFile);
+        let currentPlayingMusicLi;
+        if( (currentPlayingMusicLi = this.dom.musiclist.querySelector('.skPlayer-curMusic')) ){
+            let index = this.getElementIndex(currentPlayingMusicLi);
+            console.log(index);
+            dialog.showOpenDialog({
+                filters:[{name: 'Lyric', extensions: ['lrc']}],
+                properties:['openFile']
+                }, (filePaths) => {
+                    if(filePaths)
+                        this.displayLyricFromFile(filePaths[0], index);
+                });
+        }
     }
 
-    displayLyricFromFile(filePath){
+    //done
+    displayLyricFromFile(filePath, index){
         //console.log(filePath);
         if (!filePath) return;
-        readFile(filePath[0], 'utf8').then((dataString) => {
+        readFile(filePath, 'utf8').then((dataString) => {
             let lines = dataString.split("\n");
             if(lines.length == 0) return;
             this.dom.lyricblock.classList.add("skPlayer-lyric-in");
@@ -630,6 +676,57 @@ class skPlayer {
                     this.dom.lyricul.appendChild(node);
                 }
             }
+            if(this.musicList[index].lyric != filePath){
+                this.musicList[index].lyric = filePath;
+                //update json file
+                this.saveMusicListToJSON();
+            }
+
+        });
+    }
+
+    //done
+    updateLyricPosition(time){
+        if(this.dom.lyricul.children.length == 0) return;
+        let curLyricLi = this.dom.lyricul.querySelector("li.curLyric");
+        let nextLyricLi
+        if(curLyricLi){
+            nextLyricLi = curLyricLi.nextSibling;
+        }
+        else{
+            nextLyricLi = this.dom.lyricul.children[0];
+        }
+        if(nextLyricLi){
+            let nextTime = parseFloat(nextLyricLi.getAttribute("time"));
+            if(nextTime < time){
+                if(curLyricLi)
+                    curLyricLi.classList.remove("curLyric");
+                nextLyricLi.classList.add("curLyric");
+
+                let ulRect = this.dom.lyricul.getBoundingClientRect(),
+                    liRect = nextLyricLi.getBoundingClientRect(),
+                    offset = liRect.top - ulRect.top;
+
+                if(offset - this.dom.lyricul.scrollTop + liRect.height/2  > this.dom.lyricblock.offsetHeight/2){
+                    let scrollAmount = offset + liRect.height/2 - this.dom.lyricblock.offsetHeight/2 - this.dom.lyricblock.scrollTop;
+                    scrollYWithDistance(this.dom.lyricblock, scrollAmount, 0.3);
+                }
+            }
+        }
+    }
+
+    //done
+    saveMusicListToJSON(){
+        let json = {
+            listType: "normal",
+            source: this.musicList
+        };
+        let json_s = JSON.stringify(json);
+        fs.writeFile('./music-list.json', json_s, 'utf8', (err) => {
+            if(err)
+                console.log(err);
+            else
+                console.log("write success");
         });
     }
 }
