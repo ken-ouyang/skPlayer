@@ -16,6 +16,7 @@ A simple but elegant HTML5 based player 
 * ProgressBar
 * Playback Mode
 * NetEase Playlist
+* Support all OS
 
 
 # TODO
@@ -31,3 +32,4 @@ A simple but elegant HTML5 based player 
 
 # Citation
 Thanks[@wangpengfei15975](https://github.com/wangpengfei15975) for the open source music player.
+Thanks[@aadsm](https://github.com/aadsm/JavaScript-ID3-Reader) for the media tags reader.
