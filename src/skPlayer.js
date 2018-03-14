@@ -7,6 +7,7 @@ const electron = require('electron');
 const {ipcRenderer} = electron;
 const {dialog} = electron.remote;
 const fs = require('fs');
+const jsmediatags = require("jsmediatags");
 
 const Util = {
     leftDistance: (el) => {
@@ -377,7 +378,7 @@ class skPlayer {
         this.dom.name.innerHTML = this.musicList[index].name;
         this.dom.author.innerHTML = this.musicList[index].author;
         this.dom.cover.src = this.musicList[index].cover;
-        if(this.musicList[index].type === 'normal'){
+        if(this.musicList[index].type === 'local'){
             this.audio.src = this.musicList[index].path;
             this.play();
         }else if(this.musicList[index].type === 'cloud'){
@@ -504,18 +505,30 @@ class skPlayer {
 	
 	//done
 	addFileToList(filePath){
-		let music = new Music({
-			type: 'local',
-			name: 'unknown',
-			path: filePath,
-			author: 'unknown',
-			cover: default_cover_path
-		});
-		if(this.musicList.length == 0){
-			this.audio.setAttribute("src",filePath);
-		}
-		this.musicList.push(music);
-		this.dom.musiclist.insertAdjacentHTML('beforeend', this.getLiHTML(this.musicList.length-1));
+        jsmediatags.read(filePath,{
+            onSuccess: (tags) => {
+                console.log(tags);
+
+                let music = new Music({
+                    type: 'local',
+                    name: 'unknown',
+                    path: filePath,
+                    author: 'unknown',
+                    cover: default_cover_path
+                });
+                if(this.musicList.length == 0){
+                    this.audio.setAttribute("src",filePath);
+                }
+                this.musicList.push(music);
+                this.dom.musiclist.insertAdjacentHTML('beforeend', this.getLiHTML(this.musicList.length-1));
+                
+                //should also update the music-list.json
+            },
+            onError: (error) => {
+                console.log(error);
+            }
+        });
+		
 	}
 	
 	//done
