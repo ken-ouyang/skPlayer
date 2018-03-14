@@ -241,7 +241,7 @@ class skPlayer {
 			for(let i in this.musicList){
 				this.dom.musiclist.innerHTML += this.getLiHTML(i);
 			}
-			this.switchMusic(1);
+			this.switchMusic(0);
 		}
     }
 
@@ -297,7 +297,7 @@ class skPlayer {
             if(index === curIndex){
                 this.play();
             }else{
-                this.switchMusic(index + 1);
+                this.switchMusic(index);
             }
         });
         this.dom.timeline_total.addEventListener('click', (event) => {
@@ -329,10 +329,10 @@ class skPlayer {
             if(this.musicList.length === 1){
                 this.play();
             }else{
-                this.switchMusic(this.musicList.length-1 + 1);
+                this.switchMusic(this.musicList.length-1);
             }
         }else{
-            this.switchMusic(index-1 + 1);
+            this.switchMusic(index-1);
         }
     }
 
@@ -342,10 +342,10 @@ class skPlayer {
             if(this.musicList.length === 1){
                 this.play();
             }else{
-                this.switchMusic(0 + 1);
+                this.switchMusic(0);
             }
         }else{
-            this.switchMusic(index + 2);
+            this.switchMusic(index + 1);
         }
     }
 
@@ -354,7 +354,6 @@ class skPlayer {
             console.error('请输入正确的歌曲序号！');
             return;
         }
-        index -= 1;
         if(index < 0 || index >= this.musicList.length){
             console.error('请输入正确的歌曲序号！');
             return;
@@ -503,7 +502,7 @@ class skPlayer {
 		}
 	}
 	
-	//done
+	
 	addFileToList(filePath){
         jsmediatags.read(filePath,{
             onSuccess: (tags) => {
@@ -511,17 +510,20 @@ class skPlayer {
 
                 let music = new Music({
                     type: 'local',
-                    name: 'unknown',
+                    name: tags.tags.title? tags.tags.title : 'unknown',
                     path: filePath,
-                    author: 'unknown',
+                    author: tags.tags.artist? tags.tags.artist : 'unknown',
                     cover: default_cover_path
                 });
-                if(this.musicList.length == 0){
-                    this.audio.setAttribute("src",filePath);
-                }
+                
                 this.musicList.push(music);
                 this.dom.musiclist.insertAdjacentHTML('beforeend', this.getLiHTML(this.musicList.length-1));
-                
+
+                if(this.musicList.length == 1){
+                    this.audio.setAttribute("src",filePath);
+                    this.switchMusic(0);
+                }
+
                 //should also update the music-list.json
             },
             onError: (error) => {

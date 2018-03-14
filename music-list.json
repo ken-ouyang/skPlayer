@@ -1,19 +1,6 @@
 {
 	"listType": "normal",
 	"source": [
-		{
-			"type": "local",
-			"name": "Paris",
-			"author": "Karen Souza",
-			"path": "C:/CloudMusic/Karen Souza - Paris.mp3",
-			"cover": "C:/Users/Amors/Desktop/test.jpg"
-		},
-		{
-			"type": "local",
-			"name": "極楽浄土",
-			"author": "MARiA",
-			"path": "C:/CloudMusic/MARiA - 極楽浄土.mp3",
-			"cover": "C:/Users/Amors/Desktop/test2.jpg"
-		}
+		
 	]
 }
