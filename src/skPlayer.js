@@ -47,6 +47,17 @@ const Util = {
     }
 };
 
+const readFile = (filepath, options) => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(filepath, options, (err, buffer) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(buffer);
+    });
+  });
+};
+
 let instance = false;
 const baseUrl = 'http://120.79.36.48/';//163
 const default_cover_path = "./src/icon/default_cover.png";
@@ -59,6 +70,7 @@ class Music {
 		this.name = null;
 		this.author = null;
 		this.cover = null;
+        this.lyric = null;
 		for(let property in this){
 			if(typeof option[property] == typeof undefined || option[property] == null){
 				console.log("Creation failed because of lacking "+property);
@@ -103,11 +115,14 @@ class skPlayer {
 
         this.toggle = this.toggle.bind(this);
         this.toggleList = this.toggleList.bind(this);
+        this.toggleLyric = this.toggleLyric.bind(this);
         this.toggleMute = this.toggleMute.bind(this);
         this.switchMode = this.switchMode.bind(this);
-		this.browseFile = this.browseFile.bind(this);
+		this.browseMusicFile = this.browseMusicFile.bind(this);
 		this.clearList = this.clearList.bind(this);
-		this.filesChosenCallback = this.filesChosenCallback.bind(this);
+		this.musicsChosenCallback = this.musicsChosenCallback.bind(this);
+        this.browseLyricFile = this.browseLyricFile.bind(this);
+        this.displayLyricFromFile = this.displayLyricFromFile.bind(this);
 
 		this.root.innerHTML = this.template();
         if(this.listType === 'normal'){
@@ -131,6 +146,7 @@ class skPlayer {
 					for(let i in this.option.musicList.source){
 						this.option.musicList.source[i].type = 'cloud';
 						this.option.musicList.source[i].path = baseUrl + 'music/url?id=' + this.option.musicList.source[i].song_id;
+                        this.option.musicList.source[i].lyric = "none";
 						this.musicList.push(new Music(this.option.musicList.source[i]));
 					}
 					console.log(this.musicList);
@@ -183,24 +199,29 @@ class skPlayer {
                     </div>
                 </div>
 				<i class="skPlayer-button ${this.option.mode === 'singleloop' ? 'skPlayer-mode skPlayer-mode-loop' : 'skPlayer-mode'}"></i>
+                <i class="skPlayer-button skPlayer-lyric-switch"></i>
                 <div class="skPlayer-button skPlayer-list-switch">
                     <i class="skPlayer-list-icon"></i>
                 </div>
             </div>
 			<div class="skPlayer-list-outter">
-            <ul class="skPlayer-list">
+                <ul class="skPlayer-list">
 			
         `;
         for(let index in this.musicList){
             html += this.getLiHTML(index);
         }
         html += `
-            </ul>
-			<div class="skPlayer-list-banner">
-				<i class="skPlayer-button skPlayer-list-clear"></i>
-				<i class="skPlayer-button skPlayer-list-add"></i>
+                </ul>
+    			<div class="skPlayer-list-banner">
+    				<i class="skPlayer-button skPlayer-list-clear"></i>
+    				<i class="skPlayer-button skPlayer-list-add"></i>
+    			</div>
 			</div>
-			</div>
+            <div class="skPlayer-lyric-block">
+                <div class="skPlayer-add-lyric-button"></div>
+                <ul class="skPlayer-lyric-ul"></ul>
+            </div>
         `;
         return html;
     }
@@ -219,11 +240,15 @@ class skPlayer {
             volumebutton: this.root.querySelector('.skPlayer-icon'),
             volumeline_total: this.root.querySelector('.skPlayer-volume .skPlayer-percent'),
             volumeline_value: this.root.querySelector('.skPlayer-volume .skPlayer-line'),
+            lyricbutton: this.root.querySelector('.skPlayer-lyric-switch'),
+            addlyricbutton: this.root.querySelector('.skPlayer-add-lyric-button'),
             switchbutton: this.root.querySelector('.skPlayer-list-switch'),
             modebutton: this.root.querySelector('.skPlayer-mode'),
 			listclearbutton: this.root.querySelector('.skPlayer-list-clear'),
 			listaddbutton: this.root.querySelector('.skPlayer-list-add'),
-            musiclist: this.root.querySelector('.skPlayer-list')
+            musiclist: this.root.querySelector('.skPlayer-list'),
+            lyricblock: this.root.querySelector('.skPlayer-lyric-block'),
+            lyricul: this.root.querySelector('.skPlayer-lyric-ul')
         };
         
         if(this.option.listshow){
@@ -277,10 +302,13 @@ class skPlayer {
 
         this.dom.playbutton.addEventListener('click', this.toggle);
         this.dom.switchbutton.addEventListener('click', this.toggleList);
+        this.dom.lyricbutton.addEventListener('click', this.toggleLyric);
+        this.dom.addlyricbutton.addEventListener('click', this.browseLyricFile);
+
         if(!this.isMobile){
             this.dom.volumebutton.addEventListener('click', this.toggleMute);
         }
-		this.dom.listaddbutton.addEventListener('click', this.browseFile);
+		this.dom.listaddbutton.addEventListener('click', this.browseMusicFile);
 		this.dom.listclearbutton.addEventListener('click', this.clearList);
         this.dom.modebutton.addEventListener('click', this.switchMode);
         this.dom.musiclist.addEventListener('click', (e) => {
@@ -419,6 +447,10 @@ class skPlayer {
         this.root.classList.contains('skPlayer-list-on') ? this.root.classList.remove('skPlayer-list-on') : this.root.classList.add('skPlayer-list-on');
     }
 
+    toggleLyric(){
+        this.root.classList.contains('skPlayer-lyric-on') ? this.root.classList.remove('skPlayer-lyric-on') : this.root.classList.add('skPlayer-lyric-on');
+    }
+
     toggleMute(){
         //暂存问题，移动端兼容性
         if(this.audio.muted){
@@ -486,16 +518,16 @@ class skPlayer {
 	}
 	
 	//done
-	browseFile(){
-		console.log("browse file");
+	browseMusicFile(){
+		console.log("browse music file");
 		dialog.showOpenDialog({
 			filters:[{name: 'Music', extensions: ['mp3','wav','wma','m4a']}],
 			properties:['openFile','multiSelections']
-			}, this.filesChosenCallback);
+			}, this.musicsChosenCallback);
 	}
 	
 	//done
-	filesChosenCallback(filePaths){
+	musicsChosenCallback(filePaths){
 		if(typeof filePaths == typeof undefined) return;
 		for(let i in filePaths){
 			this.addFileToList(filePaths[i]);
@@ -507,31 +539,38 @@ class skPlayer {
         jsmediatags.read(filePath,{
             onSuccess: (tags) => {
                 console.log(tags);
-
-                let music = new Music({
-                    type: 'local',
-                    name: tags.tags.title? tags.tags.title : 'unknown',
-                    path: filePath,
-                    author: tags.tags.artist? tags.tags.artist : 'unknown',
-                    cover: default_cover_path
-                });
-                
-                this.musicList.push(music);
-                this.dom.musiclist.insertAdjacentHTML('beforeend', this.getLiHTML(this.musicList.length-1));
-
-                if(this.musicList.length == 1){
-                    this.audio.setAttribute("src",filePath);
-                    this.switchMusic(0);
-                }
-
-                //should also update the music-list.json
+                this.addMusicToList('local',filePath,tags.tags.title? tags.tags.title : 'unknown',tags.tags.artist? tags.tags.artist : 'unknown',default_cover_path);
             },
             onError: (error) => {
                 console.log(error);
+                //maybe try to check if the file is really a music file here
+
+                //if it is, add to the list with all information unknown
+                this.addMusicToList('local',filePath,'unknown','unknown',default_cover_path);
             }
         });
 		
 	}
+
+    addMusicToList(type,path,title,artist,cover){
+        let music = new Music({
+            type: type,
+            name: title,
+            path: path,
+            author: artist,
+            cover: cover,
+            lyric: 'none'
+        });
+        
+        this.musicList.push(music);
+        this.dom.musiclist.insertAdjacentHTML('beforeend', this.getLiHTML(this.musicList.length-1));
+
+        if(this.musicList.length == 1){
+            this.audio.setAttribute("src",path);
+            this.switchMusic(0);
+        }
+        //should also update the music-list.json
+    }
 	
 	//done
 	removeFromList(node){
@@ -563,7 +602,36 @@ class skPlayer {
 		return nodes.indexOf( node );
 	}
 	
-	
+	//done
+    browseLyricFile(){
+        console.log("browse lyric file");
+        dialog.showOpenDialog({
+            filters:[{name: 'Lyric', extensions: ['lrc']}],
+            properties:['openFile']
+            }, this.displayLyricFromFile);
+    }
+
+    displayLyricFromFile(filePath){
+        //console.log(filePath);
+        if (!filePath) return;
+        readFile(filePath[0], 'utf8').then((dataString) => {
+            let lines = dataString.split("\n");
+            if(lines.length == 0) return;
+            this.dom.lyricblock.classList.add("skPlayer-lyric-in");
+            let regex = new RegExp(/\[(\d\d)\:(\d\d\.\d\d)\](.+)/);
+            for(let i in lines){
+                let match, time;
+                if(match = regex.exec(lines[i])){
+                    time = parseInt(match[1])*60.0+parseFloat(match[2]);
+                    //console.log(time + ' ' + match[3]);
+                    let node = document.createElement("li");
+                    node.innerHTML = match[3];
+                    node.setAttribute("time", time);
+                    this.dom.lyricul.appendChild(node);
+                }
+            }
+        });
+    }
 }
 
 

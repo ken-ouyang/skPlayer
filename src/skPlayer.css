@@ -189,7 +189,7 @@
   height: 14px;
   float: right;
   position: relative;
-  margin: 1px 54px 0 0;
+  margin: 1px 79px 0 0;
 }
 #skPlayer .skPlayer-control .skPlayer-volume .skPlayer-icon {
   width: 5px;
@@ -291,6 +291,16 @@
   background-repeat: no-repeat;
   background-size: 16px 16px;
   position: absolute;
+  right: 65px;
+}
+#skPlayer .skPlayer-control .skPlayer-lyric-switch {
+  width: 16px;
+  height: 16px;
+  background-image: url(./icon/subtitles.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+  position: absolute;
   right: 40px;
 }
 #skPlayer .skPlayer-control .skPlayer-mode.skPlayer-mode-loop {
@@ -299,8 +309,8 @@
 #skPlayer .skPlayer-list-outter {
   display: none;
   width: 100%;
-  position: absolute;
-  top: 100px;
+  position: relative;
+  top: 0px;
   background-color: #fff;
   list-style: none;
   min-height: 38px;
@@ -411,4 +421,54 @@
 }
 #skPlayer.skPlayer-list-on .skPlayer-list-outter {
   display: block;
+}
+#skPlayer .skPlayer-lyric-block {
+  display: none;
+  top: 10px;
+  width: 100%;
+  height: 300px;
+  border-radius: 8px;
+  border-color: #eeeeee;
+  border-style: solid;
+  border-width: 1px;
+  background-color: #fbfbfb;
+  position: relative;
+  overflow-y: hidden;
+}
+#skPlayer .skPlayer-lyric-block ul {
+  
+}
+#skPlayer .skPlayer-lyric-block li {
+  text-align: center;
+  font-size: 13;
+  color: #6a6b6f;
+  height: 26px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+#skPlayer .skPlayer-lyric-block li.curLyric{
+  color: #2b2929;
+}
+#skPlayer.skPlayer-lyric-on .skPlayer-lyric-block {
+  display: block;
+}
+#skPlayer .skPlayer-lyric-block .skPlayer-add-lyric-button {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top:0px;
+  left:0px;
+  background-color: rgba(255,255,255,0);
+  background-image: url(./icon/add_lyric.png);
+  background-size: 64px 64px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+#skPlayer .skPlayer-lyric-block .skPlayer-add-lyric-button:hover {
+  background-color: rgba(255,255,255,1);
+}
+#skPlayer .skPlayer-lyric-block.skPlayer-lyric-in .skPlayer-add-lyric-button {
+  display: none;
 }
