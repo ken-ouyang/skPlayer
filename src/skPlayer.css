@@ -2,7 +2,7 @@
  SKPlayer
  */
 #skPlayer {
-  width: 380px;
+  width: 440px;
   height: 100px;
   font-family: Arial, Helvetica, sans-serif;
   position: relative;
@@ -113,7 +113,7 @@
   top: -76px;
 }
 #skPlayer .skPlayer-control {
-  width: 250px;
+  width: 310px;
   height: 75px;
   padding: 10px 15px 15px;
   background-color: transparent;
@@ -123,6 +123,10 @@
   z-index: 2;
   text-align: left;
 }
+#skPlayer .skPlayer-button {
+	display: block;
+	cursor: pointer;
+}
 #skPlayer .skPlayer-control p {
   line-height: 1.2;
   overflow: hidden;
@@ -130,17 +134,19 @@
   text-overflow: ellipsis;
 }
 #skPlayer .skPlayer-control p.skPlayer-name {
+  height: 21px;
   font-size: 18px;
   font-weight: 700;
   color: #6a6b6f;
 }
 #skPlayer .skPlayer-control p.skPlayer-author {
+  height: 18px;
   font-size: 15px;
   color: #666;
   max-width: 90%;
 }
 #skPlayer .skPlayer-control > .skPlayer-percent {
-  width: 250px;
+  width: 310px;
   height: 6px;
   background-color: #ebebf2;
   margin: 9px 0;
@@ -183,17 +189,15 @@
   height: 14px;
   float: right;
   position: relative;
-  margin: 1px 24px 0 0;
+  margin: 1px 54px 0 0;
 }
 #skPlayer .skPlayer-control .skPlayer-volume .skPlayer-icon {
-  display: block;
   width: 5px;
   height: 6px;
   position: absolute;
   background-color: #6a6b6f;
   top: 4px;
   left: -20px;
-  cursor: pointer;
 }
 #skPlayer .skPlayer-control .skPlayer-volume .skPlayer-icon.skPlayer-quiet::before {
   display: block;
@@ -244,13 +248,11 @@
   -moz-transition: 0.37s;
 }
 #skPlayer .skPlayer-control .skPlayer-list-switch {
-  display: block;
   width: 16px;
   height: 15px;
   position: absolute;
   right: 15px;
   bottom: 12px;
-  cursor: pointer;
 }
 #skPlayer .skPlayer-control .skPlayer-list-icon {
   display: block;
@@ -282,29 +284,66 @@
   bottom: -6px;
 }
 #skPlayer .skPlayer-control .skPlayer-mode {
-  display: block;
   width: 16px;
-  height: 17px;
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAARCAYAAADUryzEAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAAsSAAALEgHS3X78AAABVklEQVQ4y5XTvY6NURQG4OdsnElMFFqFiCgk/htBaFAoRq0QHYO9JTsSVyB6+STfx4hO5QJMZTQkU0gw4gJM4wpIxH8x6+QMxndy3mZl7bXf911r/wwgl/oCJ/2Ll13bnNKDpB8nJtTXBMJlBi1+TjLIpW7+Y0MudYinKPiOeziObRuQL2Epl7oVRkp3cRYfMde1zZv/OA9xBzuDc3WQS92HlXA+1rXN276Zc6mH8CrMjyRcxibcn0SO81rBQwwwn3Auak8mkdfhccQzCbsjeT2FwKjTXQk/IpmdQmBLxG8Jq5HsnUJgf8TVhOeRXJhC4GLEZwkL+IVrcUW9yKUexJUY/VHq2uZdiMxgMZd6tId8GIuxd6Frm/ejl1ixx9prvG18tXKpszgQbc9jGGPfZPyZvuI8HuDWX8afsIwbQYbTWGL8F3Rt8wXXN+j8Mz5gO3asWx/AbzMQVi2KT5GSAAAAAElFTkSuQmCC);
+  height: 16px;
+  background-image: url(./icon/loop_list.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
   position: absolute;
-  right: 15px;
-  bottom: 51px;
-  cursor: pointer;
+  right: 40px;
 }
 #skPlayer .skPlayer-control .skPlayer-mode.skPlayer-mode-loop {
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAARCAYAAADUryzEAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAAsSAAALEgHS3X78AAABa0lEQVQ4y5XTu2pVURAG4O9s9QgGC1sLEbEQvMXGG7FRCwutLcROIq4lLASfQOxlC3trbK18AFMZm0QEhcSID2Aan0BB4gWLM8cT48455G+GWWv++WfWzOpBymURM/7HUtvUF4xBZTzOT7gfJAiV3Wjwe5JAymXnPwEplz5eIuMnHuMc9naQb2Ih5bIHhpke4TK+4Grb1CtbKPfxEAeCc7uXcjmK1VA+2zb1h3E9p1xO4n2In6pwCzvwZDM55bIYE/qLtqlX8Qw9zFa4EncvOgRndI/3edhLFQ6FszxpZBswrPRghV/hTG0jwa6wPyqshXNkGwmOhV2r8Dqc6x2BS3jTcX4j7KteyuVE9LSOM/HKWyLi3xmMcbpqm/oj5gxWeT7lcnoMeRrzETvXNvWn4SYWHDbYxgdGo5VymcLxKHsW/Wj7HqPPtI5reIr7m4S/4i3uBhkuYoHRX9A29Xfc6aj8Gz5jH/ZvOO/BH1b7XciLVLbaAAAAAElFTkSuQmCC);
+  background-image: url(./icon/loop_single.png);
 }
-#skPlayer .skPlayer-list {
+#skPlayer .skPlayer-list-outter {
   display: none;
   width: 100%;
   position: absolute;
   top: 100px;
+  background-color: #fff;
+  list-style: none;
+  min-height: 38px;
+  overflow-y: hidden;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .2), 0 1px 5px 0 rgba(0, 0, 0, .12);
+}
+#skPlayer .skPlayer-list {
+  width: 100%;
   padding-top: 6px;
   background-color: #fff;
   list-style: none;
   max-height: 171px;
   overflow-y: auto;
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .2), 0 1px 5px 0 rgba(0, 0, 0, .12);
+}
+#skPlayer .skPlayer-list-banner {
+  background-color: #2b2929;
+  position: relative;
+  bottom: 0px;
+  height: 32px;
+  width: 100%;
+}
+#skPlayer .skPlayer-list-banner .skPlayer-list-add {
+  position: absolute;
+  bottom: 8px;
+  right: 15px;
+  height: 17px;
+  width: 17px;
+  background-image: url(./icon/add.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+  position: absolute;
+}
+#skPlayer .skPlayer-list-banner .skPlayer-list-clear {
+  position: absolute;
+  bottom: 8px;
+  right: 40px;
+  height: 17px;
+  width: 17px;
+  background-image: url(./icon/clear_list.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
 }
 #skPlayer .skPlayer-list li {
   position: relative;
@@ -370,6 +409,6 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-#skPlayer.skPlayer-list-on .skPlayer-list {
+#skPlayer.skPlayer-list-on .skPlayer-list-outter {
   display: block;
 }

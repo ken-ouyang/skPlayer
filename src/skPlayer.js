@@ -1,7 +1,13 @@
 //SKPlayer
 console.log('%cSKPlayer 3.0.8', 'color:#D94240');
 
-//require('./src/skPlayer.scss');
+//require('./src/skPlayer.scss'); //changed to use ./src/skPlayer.css
+
+const electron = require('electron');
+const {ipcRenderer} = electron;
+const {dialog} = electron.remote;
+const fs = require('fs');
+const jsmediatags = require("jsmediatags");
 
 const Util = {
     leftDistance: (el) => {
@@ -42,9 +48,29 @@ const Util = {
 };
 
 let instance = false;
-const baseUrl = 'http://120.79.36.48/';
+const baseUrl = 'http://120.79.36.48/';//163
+const default_cover_path = "./src/icon/default_cover.png";
+
+class Music {
+	
+	constructor(option){
+		this.type = null;
+		this.path = null;
+		this.name = null;
+		this.author = null;
+		this.cover = null;
+		for(let property in this){
+			if(typeof option[property] == typeof undefined || option[property] == null){
+				console.log("Creation failed because of lacking "+property);
+				return Object.create(null);
+			}
+			this[property] = option[property];
+		}
+	}
+}
 
 class skPlayer {
+	
     constructor(option){
         if(instance){
             console.error('SKPlayer只能存在一个实例！');
@@ -67,35 +93,47 @@ class skPlayer {
         }
         this.option = option;
 
-        if(!(this.option.music && this.option.music.type && this.option.music.source)){
+        if(!(this.option.musicList && this.option.musicList.listType && this.option.musicList.source)){
             console.error('请正确配置对象！');
             return Object.create(null);
         }
         this.root = this.option.element;
-        this.type = this.option.music.type;
-        this.music = this.option.music.source;
+        this.listType = this.option.musicList.listType;
         this.isMobile = /mobile/i.test(window.navigator.userAgent);
 
         this.toggle = this.toggle.bind(this);
         this.toggleList = this.toggleList.bind(this);
         this.toggleMute = this.toggleMute.bind(this);
         this.switchMode = this.switchMode.bind(this);
+		this.browseFile = this.browseFile.bind(this);
+		this.clearList = this.clearList.bind(this);
+		this.filesChosenCallback = this.filesChosenCallback.bind(this);
 
-        if(this.type === 'file'){
-            this.root.innerHTML = this.template();
+		this.root.innerHTML = this.template();
+        if(this.listType === 'normal'){
+			this.musicList = [];
+			for(let i in this.option.musicList.source){
+				this.musicList.push(new Music(this.option.musicList.source[i]));
+			}
             this.init();
             this.bind();
-        }else if(this.type === 'cloud'){
-            this.root.innerHTML = '<p class="skPlayer-tip-loading">LOADING</p>';
+        }else if(this.listType === 'cloud'){
+            
             Util.ajax({
-                url: baseUrl + 'playlist/detail?id=' + this.music,
+                url: baseUrl + 'playlist/detail?id=' + this.option.musicList.source,
                 beforeSend: () => {
                     console.log('SKPlayer正在努力的拉取歌单 ...');
                 },
                 success: (data) => {
                     console.log('歌单拉取成功！');
-                    this.music = JSON.parse(data);
-                    this.root.innerHTML = this.template();
+                    this.option.musicList.source = JSON.parse(data);
+					this.musicList = [];
+					for(let i in this.option.musicList.source){
+						this.option.musicList.source[i].type = 'cloud';
+						this.option.musicList.source[i].path = baseUrl + 'music/url?id=' + this.option.musicList.source[i].song_id;
+						this.musicList.push(new Music(this.option.musicList.source[i]));
+					}
+					console.log(this.musicList);
                     this.init();
                     this.bind();
                 },
@@ -106,51 +144,63 @@ class skPlayer {
         }
     }
 
+	getLiHTML(index){
+		return `
+                <li>
+                    <i class="skPlayer-list-sign"></i>
+                    <span class="skPlayer-list-index">${parseInt(index) + 1}</span>
+                    <span class="skPlayer-list-name" title="${this.musicList[index].name}">${this.musicList[index].name}</span>
+                    <span class="skPlayer-list-author" title="${this.musicList[index].author}">${this.musicList[index].author}</span>
+                </li>
+            `
+	}
+	
+	//render HTML
     template(){
         let html = `
-            <audio class="skPlayer-source" src="${this.type === 'file' ? this.music[0].src : ''}" preload="auto"></audio>
+            <audio class="skPlayer-source" src="" preload="auto"></audio>
             <div class="skPlayer-picture">
-                <img class="skPlayer-cover" src="${this.music[0].cover}" alt="">
+                <img class="skPlayer-cover" src="${default_cover_path}" alt="">
                 <a href="javascript:;" class="skPlayer-play-btn">
                     <span class="skPlayer-left"></span>
                     <span class="skPlayer-right"></span>
                 </a>
             </div>
             <div class="skPlayer-control">
-                <p class="skPlayer-name">${this.music[0].name}</p>
-                <p class="skPlayer-author">${this.music[0].author}</p>
+                <p class="skPlayer-name"></p>
+                <p class="skPlayer-author"></p>
                 <div class="skPlayer-percent">
                     <div class="skPlayer-line-loading"></div>
                     <div class="skPlayer-line"></div>
                 </div>
                 <p class="skPlayer-time">
-                    <span class="skPlayer-cur">${'00:00'}</span>/<span class="skPlayer-total">${'00:00'}</span>
+                    <span class="skPlayer-cur">00:00</span>/<span class="skPlayer-total">00:00</span>
                 </p>
-                <div class="skPlayer-volume" style="${this.isMobile ? 'display:none;' : ''}">
+                <div class="skPlayer-button skPlayer-volume" style="${this.isMobile ? 'display:none;' : ''}">
                     <i class="skPlayer-icon"></i>
                     <div class="skPlayer-percent">
                         <div class="skPlayer-line"></div>
                     </div>
                 </div>
-                <div class="skPlayer-list-switch">
+				<i class="skPlayer-button ${this.option.mode === 'singleloop' ? 'skPlayer-mode skPlayer-mode-loop' : 'skPlayer-mode'}"></i>
+                <div class="skPlayer-button skPlayer-list-switch">
                     <i class="skPlayer-list-icon"></i>
                 </div>
-                <i class="${this.option.mode === 'singleloop' ? 'skPlayer-mode skPlayer-mode-loop' : 'skPlayer-mode'}"></i>
             </div>
+			<div class="skPlayer-list-outter">
             <ul class="skPlayer-list">
+			
         `;
-        for(let index in this.music){
-            html += `
-                <li data-index="${index}">
-                    <i class="skPlayer-list-sign"></i>
-                    <span class="skPlayer-list-index">${parseInt(index) + 1}</span>
-                    <span class="skPlayer-list-name" title="${this.music[index].name}">${this.music[index].name}</span>
-                    <span class="skPlayer-list-author" title="${this.music[index].author}">${this.music[index].author}</span>
-                </li>
-            `;
+        for(let index in this.musicList){
+            html += this.getLiHTML(index);
         }
         html += `
             </ul>
+			<div class="skPlayer-list-banner">
+				<i class="skPlayer-button skPlayer-list-clear"></i>
+				<i class="skPlayer-button skPlayer-list-add"></i>
+			</div>
+			</div>
         `;
         return html;
     }
@@ -171,54 +221,42 @@ class skPlayer {
             volumeline_value: this.root.querySelector('.skPlayer-volume .skPlayer-line'),
             switchbutton: this.root.querySelector('.skPlayer-list-switch'),
             modebutton: this.root.querySelector('.skPlayer-mode'),
-            musiclist: this.root.querySelector('.skPlayer-list'),
-            musicitem: this.root.querySelectorAll('.skPlayer-list li')
+			listclearbutton: this.root.querySelector('.skPlayer-list-clear'),
+			listaddbutton: this.root.querySelector('.skPlayer-list-add'),
+            musiclist: this.root.querySelector('.skPlayer-list')
         };
-        this.audio = this.root.querySelector('.skPlayer-source');
+        
         if(this.option.listshow){
             this.root.className = 'skPlayer-list-on';
         }
-        if(this.option.mode === 'singleloop'){
-            this.audio.loop = true;
-        }
-        this.dom.musicitem[0].className = 'skPlayer-curMusic';
-        if(this.type === 'cloud'){
-            Util.ajax({
-                url: baseUrl + 'music/url?id=' + this.music[0].song_id,
-                beforeSend: () => {
-                    console.log('SKPlayer正在努力的拉取歌曲 ...');
-                },
-                success: (data) => {
-                    let url = JSON.parse(data).url;
-                    if(url !== null){
-                        console.log('歌曲拉取成功！');
-                        this.audio.src = url;
-                    }else{
-                        console.log('歌曲拉取失败！ 资源无效！');
-                        if(this.music.length !== 1){
-                            this.next();
-                        }
-                    }
-                },
-                fail: (status) => {
-                    console.error('歌曲拉取失败！ 错误码：' + status);
-                }
-            });
-        }
+        
+		let audioNode = this.root.querySelector('.skPlayer-source');
+		this.audio = audioNode;
+		
+		if(this.musicList.length > 0){
+			audioNode.setAttribute("src", this.musicList[0].path);
+			if(this.option.mode === 'singleloop'){
+				this.audio.loop = true;
+			}
+			for(let i in this.musicList){
+				this.dom.musiclist.innerHTML += this.getLiHTML(i);
+			}
+			this.switchMusic(0);
+		}
     }
 
     bind(){
-        this.updateLine = () => {
+        this.updateProgressBar = () => {
             let percent = this.audio.buffered.length ? (this.audio.buffered.end(this.audio.buffered.length - 1) / this.audio.duration) : 0;
             this.dom.timeline_loaded.style.width = Util.percentFormat(percent);
         };
 
         this.audio.addEventListener('durationchange', (e) => {
             this.dom.timetext_total.innerHTML = Util.timeFormat(this.audio.duration);
-            this.updateLine();
+            this.updateProgressBar();
         });
         this.audio.addEventListener('progress', (e) => {
-            this.updateLine();
+            this.updateProgressBar();
         });
         this.audio.addEventListener('canplay', (e) => {
             if(this.option.autoplay && !this.isMobile){
@@ -242,6 +280,8 @@ class skPlayer {
         if(!this.isMobile){
             this.dom.volumebutton.addEventListener('click', this.toggleMute);
         }
+		this.dom.listaddbutton.addEventListener('click', this.browseFile);
+		this.dom.listclearbutton.addEventListener('click', this.clearList);
         this.dom.modebutton.addEventListener('click', this.switchMode);
         this.dom.musiclist.addEventListener('click', (e) => {
             let target,index,curIndex;
@@ -252,15 +292,16 @@ class skPlayer {
             }else{
                 return;
             }
-            index = parseInt(target.getAttribute('data-index'));
-            curIndex = parseInt(this.dom.musiclist.querySelector('.skPlayer-curMusic').getAttribute('data-index'));
+            index = this.getElementIndex(target);
+            curIndex = this.getElementIndex(this.dom.musiclist.querySelector('.skPlayer-curMusic'));
             if(index === curIndex){
                 this.play();
             }else{
-                this.switchMusic(index + 1);
+                this.switchMusic(index);
             }
         });
         this.dom.timeline_total.addEventListener('click', (event) => {
+			if(this.musicList.length == 0) return;
             let e = event || window.event;
             let percent = (e.clientX - Util.leftDistance(this.dom.timeline_total)) / this.dom.timeline_total.clientWidth;
             if(!isNaN(this.audio.duration)){
@@ -283,28 +324,28 @@ class skPlayer {
     }
 
     prev(){
-        let index = parseInt(this.dom.musiclist.querySelector('.skPlayer-curMusic').getAttribute('data-index'));
+        let index = this.getElementIndex(this.dom.musiclist.querySelector('.skPlayer-curMusic'));
         if(index === 0){
-            if(this.music.length === 1){
+            if(this.musicList.length === 1){
                 this.play();
             }else{
-                this.switchMusic(this.music.length-1 + 1);
+                this.switchMusic(this.musicList.length-1);
             }
         }else{
-            this.switchMusic(index-1 + 1);
+            this.switchMusic(index-1);
         }
     }
 
     next(){
-        let index = parseInt(this.dom.musiclist.querySelector('.skPlayer-curMusic').getAttribute('data-index'));
-        if(index === (this.music.length - 1)){
-            if(this.music.length === 1){
+        let index = this.getElementIndex(this.dom.musiclist.querySelector('.skPlayer-curMusic'));
+        if(index === (this.musicList.length - 1)){
+            if(this.musicList.length === 1){
                 this.play();
             }else{
-                this.switchMusic(0 + 1);
+                this.switchMusic(0);
             }
         }else{
-            this.switchMusic(index+1 + 1);
+            this.switchMusic(index + 1);
         }
     }
 
@@ -313,56 +354,39 @@ class skPlayer {
             console.error('请输入正确的歌曲序号！');
             return;
         }
-        index -= 1;
-        if(index < 0 || index >= this.music.length){
+        if(index < 0 || index >= this.musicList.length){
             console.error('请输入正确的歌曲序号！');
             return;
         }
-        if(index == this.dom.musiclist.querySelector('.skPlayer-curMusic').getAttribute('data-index')){
+		let currentPlayingMusicLi;
+        if( (currentPlayingMusicLi = this.dom.musiclist.querySelector('.skPlayer-curMusic')) && index == this.getElementIndex(currentPlayingMusicLi)){
             this.play();
             return;
         }
-        //if(!this.isMobile){
-        //    this.audio.pause();
-        //    this.audio.currentTime = 0;
-        //}
-        this.dom.musiclist.querySelector('.skPlayer-curMusic').classList.remove('skPlayer-curMusic');
-        this.dom.musicitem[index].classList.add('skPlayer-curMusic');
-        this.dom.name.innerHTML = this.music[index].name;
-        this.dom.author.innerHTML = this.music[index].author;
-        this.dom.cover.src = this.music[index].cover;
-        if(this.type === 'file'){
-            this.audio.src = this.music[index].src;
+		else if(currentPlayingMusicLi){
+			this.dom.musiclist.querySelector('.skPlayer-curMusic').classList.remove('skPlayer-curMusic');
+		}
+		/*
+        if(!this.isMobile){
+           this.audio.pause();
+           this.audio.currentTime = 0;
+        }
+		*/
+		this.audio.currentTime = 0;
+        this.dom.musiclist.children[index].classList.add('skPlayer-curMusic');
+        this.dom.name.innerHTML = this.musicList[index].name;
+        this.dom.author.innerHTML = this.musicList[index].author;
+        this.dom.cover.src = this.musicList[index].cover;
+        if(this.musicList[index].type === 'local'){
+            this.audio.src = this.musicList[index].path;
             this.play();
-        }else if(this.type === 'cloud'){
-            Util.ajax({
-                url: baseUrl + 'music/url?id=' + this.music[index].song_id,
-                beforeSend: () => {
-                    console.log('SKPlayer正在努力的拉取歌曲 ...');
-                },
-                success: (data) => {
-                    let url = JSON.parse(data).url;
-                    if(url !== null){
-                        console.log('歌曲拉取成功！');
-                        this.audio.src = url;
-                        this.play();
-                        //暂存问题，移动端兼容性
-                    }else{
-                        console.log('歌曲拉取失败！ 资源无效！');
-                        if(this.music.length !== 1){
-                            this.next();
-                        }
-                    }
-                },
-                fail: (status) => {
-                    console.error('歌曲拉取失败！ 错误码：' + status);
-                }
-            });
+        }else if(this.musicList[index].type === 'cloud'){
+            this.playCloudMusic(index);
         }
     }
 
     play(){
-        if(this.audio.paused){
+        if(this.audio.paused && this.musicList.length){
             this.audio.play();
             this.dom.playbutton.classList.add('skPlayer-pause');
             this.dom.cover.classList.add('skPlayer-pause');
@@ -375,6 +399,16 @@ class skPlayer {
             this.dom.playbutton.classList.remove('skPlayer-pause');
             this.dom.cover.classList.remove('skPlayer-pause');
         }
+		
+		if(this.musicList.length == 0){
+			//reset the progress bar
+			this.dom.timeline_loaded.style.width = 0;
+			this.dom.timetext_total.innerHTML = '00:00';
+			this.audio.currentTime = 0;
+			this.dom.cover.setAttribute("src",default_cover_path);
+			this.dom.name.innerHTML = '';
+			this.dom.author.innerHTML = '';
+		}
     }
 
     toggle(){
@@ -417,6 +451,120 @@ class skPlayer {
         }
         console.log('该实例已销毁，可重新配置 ...');
     }
+	
+	playCloudMusic(index){
+		Util.ajax({
+			url: this.musicList[index].path,
+			beforeSend: () => {
+				console.log('SKPlayer正在努力的拉取歌曲 ...');
+			},
+			success: (data) => {
+				let url = JSON.parse(data).url;
+				if(url !== null){
+					console.log('歌曲拉取成功！');
+					this.audio.src = url;
+					this.play();
+					//暂存问题，移动端兼容性
+				}else{
+					console.log('歌曲拉取失败！ 资源无效！');
+					if(this.musicList.length !== 1){
+						this.next();
+					}
+				}
+			},
+			fail: (status) => {
+				console.error('歌曲拉取失败！ 错误码：' + status);
+			}
+		});
+	}
+	
+	//done
+	clearList(){
+		this.dom.musiclist.innerHTML = '';
+		this.musicList = [];
+		this.pause();
+	}
+	
+	//done
+	browseFile(){
+		console.log("browse file");
+		dialog.showOpenDialog({
+			filters:[{name: 'Music', extensions: ['mp3','wav','wma','m4a']}],
+			properties:['openFile','multiSelections']
+			}, this.filesChosenCallback);
+	}
+	
+	//done
+	filesChosenCallback(filePaths){
+		if(typeof filePaths == typeof undefined) return;
+		for(let i in filePaths){
+			this.addFileToList(filePaths[i]);
+		}
+	}
+	
+	
+	addFileToList(filePath){
+        jsmediatags.read(filePath,{
+            onSuccess: (tags) => {
+                console.log(tags);
+
+                let music = new Music({
+                    type: 'local',
+                    name: tags.tags.title? tags.tags.title : 'unknown',
+                    path: filePath,
+                    author: tags.tags.artist? tags.tags.artist : 'unknown',
+                    cover: default_cover_path
+                });
+                
+                this.musicList.push(music);
+                this.dom.musiclist.insertAdjacentHTML('beforeend', this.getLiHTML(this.musicList.length-1));
+
+                if(this.musicList.length == 1){
+                    this.audio.setAttribute("src",filePath);
+                    this.switchMusic(0);
+                }
+
+                //should also update the music-list.json
+            },
+            onError: (error) => {
+                console.log(error);
+            }
+        });
+		
+	}
+	
+	//done
+	removeFromList(node){
+		let nodeCurr = node;
+		let nodeAfter;
+		while ((nodeAfter = nodeCurr.nextSibling)){
+			let indexNode = nodeAfter.querySelector('.skPlayer-list-index');
+			indexNode.innerHTML = parseInt(indexNode.innerHTML) + 1;
+			nodeCurr = nodeAfter;
+		}
+		this.musicList.splice(this.getElementIndex(node),1);
+		this.dom.musiclist.removeChild(node);
+		
+		if(this.musicList.length == 0){
+			this.pause();
+		}
+	}
+	
+	//done
+	removeFromListByIndex(index){
+		let node;
+		if(node = this.musiclist.children[index])
+			this.removeFromList(node);
+	}
+	
+	//done
+	getElementIndex(node){
+		var nodes = Array.prototype.slice.call( node.parentElement.children );
+		return nodes.indexOf( node );
+	}
+	
+	
 }
+
 
 module.exports = skPlayer;
