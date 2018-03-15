@@ -317,6 +317,59 @@
   right: 13px;
   top: 10px;
 }
+#skPlayer .skPlayer-control .skPlayer-rate-div{
+    display: none;
+    position: absolute;
+    width: 25px;
+    height: 125px;
+    top: 0px;
+    right: -35px;
+    border-color: #fafafa;
+    border-width: 1px;
+    border-style: solid;
+    background-color: white;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .2), 0 1px 5px 0 rgba(0, 0, 0, .12);
+}
+#skPlayer .skPlayer-control .skPlayer-rate-display{
+    bottom: 1px;
+    position: absolute;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    width: 25px;
+}
+#skPlayer .skPlayer-control .skPlayer-rate-bar{
+    position: absolute;
+    top: 50px;
+    right: -28px;
+    width: 80px;
+    height: 6px;
+    -webkit-appearance: none;
+    border-radius: 0px;
+    background: #efefef;
+    outline: none;
+    transform: rotate(270deg);
+    cursor: pointer;
+}
+#skPlayer .skPlayer-control .skPlayer-rate-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #d94240;
+    cursor: pointer;
+}
+#skPlayer .skPlayer-control .skPlayer-rate-bar::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #d94240;
+    cursor: pointer;
+}
+#skPlayer .skPlayer-control .skPlayer-rate-div.skPlayer-rate-div-show{
+    display:block;
+}
 #skPlayer .skPlayer-list-outter {
   display: none;
   width: 100%;
@@ -447,7 +500,7 @@
   overflow-y: hidden;
 }
 #skPlayer .skPlayer-lyric-block ul {
-  
+
 }
 #skPlayer .skPlayer-lyric-block li {
   text-align: center;

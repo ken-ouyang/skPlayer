@@ -152,6 +152,8 @@ class skPlayer {
         this.updateLyricPosition = this.updateLyricPosition.bind(this);
         this.saveMusicListToJSON = this.saveMusicListToJSON.bind(this);
         this.removeCurrentLyric = this.removeCurrentLyric.bind(this);
+        this.togglePlaybackRateBar = this.togglePlaybackRateBar.bind(this);
+        this.changePlaybackRate = this.changePlaybackRate.bind(this);
 
 		this.root.innerHTML = this.template();
         if(this.listType === 'normal'){
@@ -236,6 +238,10 @@ class skPlayer {
                     <i class="skPlayer-list-icon"></i>
                 </div>
                 <i class="skPlayer-button skPlayer-rate-button"></i>
+                <div class="skPlayer-rate-div">
+                    <input type="range" class="skPlayer-rate-bar" orient="vertical">
+                    <p class="skPlayer-rate-display">X<br />1</p>
+                </div>
             </div>
 			<div class="skPlayer-list-outter">
                 <ul class="skPlayer-list">
@@ -281,12 +287,21 @@ class skPlayer {
 			listaddbutton: this.root.querySelector('.skPlayer-list-add'),
             musiclist: this.root.querySelector('.skPlayer-list'),
             lyricblock: this.root.querySelector('.skPlayer-lyric-block'),
-            lyricul: this.root.querySelector('.skPlayer-lyric-ul')
+            lyricul: this.root.querySelector('.skPlayer-lyric-ul'),
+            playbackratebutton: this.root.querySelector('.skPlayer-rate-button'),
+            playbackratediv: this.root.querySelector('.skPlayer-rate-div'),
+            playbackratebar: this.root.querySelector('.skPlayer-rate-bar'),
+            playbackratedisplay: this.root.querySelector('.skPlayer-rate-display')
         };
 
         if(this.option.listshow){
             this.root.className = 'skPlayer-list-on';
         }
+
+        this.dom.playbackratebar.max = 5;
+        this.dom.playbackratebar.min = 1;
+        this.dom.playbackratebar.step = 1;
+        this.dom.playbackratebar.value = 3;
 
 		let audioNode = this.root.querySelector('.skPlayer-source');
 		this.audio = audioNode;
@@ -339,6 +354,8 @@ class skPlayer {
         this.dom.switchbutton.addEventListener('click', this.toggleList);
         this.dom.lyricbutton.addEventListener('click', this.toggleLyric);
         this.dom.addlyricbutton.addEventListener('click', this.browseLyricFile);
+        this.dom.playbackratebutton.addEventListener('click', this.togglePlaybackRateBar);
+        this.dom.playbackratebar.addEventListener('change', this.changePlaybackRate);
 
         if(!this.isMobile){
             this.dom.volumebutton.addEventListener('click', this.toggleMute);
@@ -772,9 +789,34 @@ class skPlayer {
         this.dom.lyricul.innerHTML = "";
     }
 
-    //
-    showPlaybackRateBar(){
-        
+    //done
+    togglePlaybackRateBar(){
+        this.dom.playbackratediv.classList.toggle("skPlayer-rate-div-show");
+    }
+
+    //done
+    changePlaybackRate(){
+        let temp = parseInt(this.dom.playbackratebar.value);
+        let rate;
+        switch(temp){
+            case 1:
+                rate = 0.50;
+                break;
+            case 2:
+                rate = 0.75;
+                break;
+            case 3:
+                rate = 1.00;
+                break;
+            case 4:
+                rate = 1.5;
+                break;
+            case 5:
+                rate = 2.00;
+                break;
+        }
+        this.dom.playbackratedisplay.innerHTML = "X<br />"+rate;
+        this.audio.playbackRate = rate;
     }
 }
 
