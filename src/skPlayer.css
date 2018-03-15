@@ -463,9 +463,9 @@
 #skPlayer .skPlayer-list .skPlayer-single-remove {
   position: absolute;
   bottom: 8px;
-  right: 10px;
-  height: 17px;
-  width: 17px;
+  right: 6px;
+  height: 16px;
+  width: 16px;
   background-image: url(./icon/clear_list.png);
   background-position: center center;
   background-repeat: no-repeat;
@@ -544,7 +544,7 @@
 #skPlayer .skPlayer-list .skPlayer-list-author {
   color: #666;
   position: absolute;
-  right: 35px;
+  right: 30px;
   max-width: 107px;
   overflow: hidden;
   white-space: nowrap;

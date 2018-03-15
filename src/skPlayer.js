@@ -662,8 +662,8 @@ class skPlayer {
             this.dom.lyricblock.classList.remove('skPlayer-lyric-in');
         if(this.root.classList.contains('skPlayer-video-in')){
             this.root.classList.remove('skPlayer-video-in');
-            this.rom.videoplayer.children[0].setAttribute("src","");
-            this.rom.videoplayer.load();
+            this.dom.videoplayer.children[0].setAttribute("src","");
+            this.dom.videoplayer.load();
         }
 		this.musicList = [];
         this.saveMusicListToJSON();
@@ -738,6 +738,13 @@ class skPlayer {
 			nodeCurr = nodeAfter;
 		}
         if(node.classList.contains("skPlayer-curMusic")){
+            if(this.musicList.length == 0){
+                this.rom.videoplayer.children[0].setAttribute("src","");
+                this.rom.videoplayer.load();
+                if(this.root.classList.contains('skPlayer-video-in')){
+                    this.root.classList.remove('skPlayer-video-in');
+                }
+            }
             this.next();
         }
 		this.musicList.splice(this.getElementIndex(node),1);
