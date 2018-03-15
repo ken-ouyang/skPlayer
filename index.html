@@ -118,10 +118,20 @@
         <h2>注：</h2>
         <p>由于兼容性问题，移动端暂不支持自动播放和音量控制，同时toggleMute()方法在移动端可能存在异常，以及其他的一些未知BUG</p>
     </div-->
-    
+
     <script>
-	
-		var list = require('./music-list.json');
+
+        var list;
+        try{
+            list = require('./music-list.json');
+        }
+        catch(e){
+            list = {
+                listType: 'normal',
+                source: []
+            };
+        }
+
         var player = new skPlayer({
             autoplay: true,
             musicList: list,
