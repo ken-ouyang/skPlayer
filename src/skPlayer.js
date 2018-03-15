@@ -77,7 +77,7 @@ const baseUrl = 'http://120.79.36.48/';//163
 const default_cover_path = "./src/icon/default_cover.png";
 
 class Music {
-	
+
 	constructor(option){
 		this.type = null;
 		this.path = null;
@@ -96,7 +96,7 @@ class Music {
 }
 
 class skPlayer {
-	
+
     constructor(option){
         if(instance){
             console.error('SKPlayer只能存在一个实例！');
@@ -132,6 +132,8 @@ class skPlayer {
         this.toggleLyric = this.toggleLyric.bind(this);
         this.toggleMute = this.toggleMute.bind(this);
         this.switchMode = this.switchMode.bind(this);
+        this.toggleSearchBox = this.toggleSearchBox.bind(this);
+        this.searchList = this.searchList.bind(this);
 		this.browseMusicFile = this.browseMusicFile.bind(this);
 		this.clearList = this.clearList.bind(this);
 		this.musicsChosenCallback = this.musicsChosenCallback.bind(this);
@@ -150,7 +152,7 @@ class skPlayer {
             this.init();
             this.bind();
         }else if(this.listType === 'cloud'){
-            
+
             Util.ajax({
                 url: baseUrl + 'playlist/detail?id=' + this.option.musicList.source,
                 beforeSend: () => {
@@ -187,7 +189,7 @@ class skPlayer {
                 </li>
             `
 	}
-	
+
 	//render HTML
     template(){
         let html = `
@@ -227,7 +229,7 @@ class skPlayer {
             </div>
 			<div class="skPlayer-list-outter">
                 <ul class="skPlayer-list">
-			
+
         `;
         for(let index in this.musicList){
             html += this.getLiHTML(index);
@@ -235,6 +237,8 @@ class skPlayer {
         html += `
                 </ul>
     			<div class="skPlayer-list-banner">
+                    <i class="skPlayer-button skPlayer-list-searchicon"></i>
+                    <input type="text" placeholder="Search.." class="skPlayer-list-searchbox"></i>
     				<i class="skPlayer-button skPlayer-list-clear"></i>
     				<i class="skPlayer-button skPlayer-list-add"></i>
     			</div>
@@ -265,20 +269,22 @@ class skPlayer {
             addlyricbutton: this.root.querySelector('.skPlayer-add-lyric-button'),
             switchbutton: this.root.querySelector('.skPlayer-list-switch'),
             modebutton: this.root.querySelector('.skPlayer-mode'),
+            listsearchiconbutton: this.root.querySelector('.skPlayer-list-searchicon'),
+            listSearchBox: this.root.querySelector('.skPlayer-list-searchbox'),
 			listclearbutton: this.root.querySelector('.skPlayer-list-clear'),
 			listaddbutton: this.root.querySelector('.skPlayer-list-add'),
             musiclist: this.root.querySelector('.skPlayer-list'),
             lyricblock: this.root.querySelector('.skPlayer-lyric-block'),
             lyricul: this.root.querySelector('.skPlayer-lyric-ul')
         };
-        
+
         if(this.option.listshow){
             this.root.className = 'skPlayer-list-on';
         }
-        
+
 		let audioNode = this.root.querySelector('.skPlayer-source');
 		this.audio = audioNode;
-		
+
 		if(this.musicList.length > 0){
 			audioNode.setAttribute("src", this.musicList[0].path);
 			if(this.option.mode === 'singleloop'){
@@ -331,6 +337,8 @@ class skPlayer {
         if(!this.isMobile){
             this.dom.volumebutton.addEventListener('click', this.toggleMute);
         }
+        this.dom.listsearchiconbutton.addEventListener('click', this.toggleSearchBox);
+        this.dom.listSearchBox.addEventListener('input', this.searchList);
 		this.dom.listaddbutton.addEventListener('click', this.browseMusicFile);
 		this.dom.listclearbutton.addEventListener('click', this.clearList);
         this.dom.modebutton.addEventListener('click', this.switchMode);
@@ -463,7 +471,7 @@ class skPlayer {
             this.dom.playbutton.classList.remove('skPlayer-pause');
             this.dom.cover.classList.remove('skPlayer-pause');
         }
-		
+
 		if(this.musicList.length == 0){
 			//reset the progress bar
 			this.dom.timeline_loaded.style.width = 0;
@@ -519,7 +527,7 @@ class skPlayer {
         }
         console.log('该实例已销毁，可重新配置 ...');
     }
-	
+
 	playCloudMusic(index){
 		Util.ajax({
 			url: this.musicList[index].path,
@@ -545,7 +553,40 @@ class skPlayer {
 			}
 		});
 	}
-	
+
+    //todo
+    toggleSearchBox(){
+        this.dom.listSearchBox.classList.toggle('skPlayer-searchbox-show');
+        this.dom.listSearchBox.value = '';
+        this.dom.listSearchBox.focus();
+        let count = this.dom.musiclist.children.length;
+        for (let i = 0; i < count; i++) {
+            this.dom.musiclist.children[i].classList.remove("skPlayer-hideCurMusic");
+        }
+    }
+
+    //todo
+    searchList(e){
+        let str = this.dom.listSearchBox.value;
+        let count = this.dom.musiclist.children.length;
+        if(str.length > 0) {
+            for (let i = 0; i < count; i++) {
+                let values1 = this.dom.musiclist.children[i].innerHTML;
+                if (values1.indexOf(str) == -1) {
+                    this.dom.musiclist.children[i].classList.add("skPlayer-hideCurMusic");
+                } else {
+                    this.dom.musiclist.children[i].classList.remove("skPlayer-hideCurMusic");
+                }
+            }
+        } else {
+            for (let i = 0; i < count; i++) {
+                this.dom.musiclist.children[i].classList.remove("skPlayer-hideCurMusic");
+            }
+        }
+
+
+    }
+
 	//done
 	clearList(){
 		this.dom.musiclist.innerHTML = '';
@@ -556,7 +597,7 @@ class skPlayer {
         this.saveMusicListToJSON();
 		this.pause();
 	}
-	
+
 	//done
 	browseMusicFile(){
 		console.log("browse music file");
@@ -565,7 +606,7 @@ class skPlayer {
 			properties:['openFile','multiSelections']
 			}, this.musicsChosenCallback);
 	}
-	
+
 	//done
 	musicsChosenCallback(filePaths){
 		if(typeof filePaths == typeof undefined) return;
@@ -573,7 +614,7 @@ class skPlayer {
 			this.addFileToList(filePaths[i]);
 		}
 	}
-	
+
 	//done
 	addFileToList(filePath){
         jsmediatags.read(filePath,{
@@ -601,7 +642,7 @@ class skPlayer {
             cover: cover,
             lyric: 'none'
         });
-        
+
         this.musicList.push(music);
         this.dom.musiclist.insertAdjacentHTML('beforeend', this.getLiHTML(this.musicList.length-1));
 
@@ -612,7 +653,7 @@ class skPlayer {
         //should also update the music-list.json
         this.saveMusicListToJSON();
     }
-	
+
 	//done
 	removeFromList(node){
 		let nodeCurr = node;
@@ -624,25 +665,25 @@ class skPlayer {
 		}
 		this.musicList.splice(this.getElementIndex(node),1);
 		this.dom.musiclist.removeChild(node);
-		
+
 		if(this.musicList.length == 0){
 			this.pause();
 		}
 	}
-	
+
 	//done
 	removeFromListByIndex(index){
 		let node;
 		if(node = this.musiclist.children[index])
 			this.removeFromList(node);
 	}
-	
+
 	//done
 	getElementIndex(node){
 		var nodes = Array.prototype.slice.call( node.parentElement.children );
 		return nodes.indexOf( node );
 	}
-	
+
 	//done
     browseLyricFile(){
         console.log("browse lyric file");

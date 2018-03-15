@@ -343,6 +343,41 @@
   height: 32px;
   width: 100%;
 }
+#skPlayer .skPlayer-list-banner .skPlayer-list-searchicon {
+    position: absolute;
+    bottom: 8px;
+    left: 14px;
+    height: 17px;
+    width: 17px;
+    background-image: url(./icon/search_list.png);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
+    position: absolute;
+}
+#skPlayer .skPlayer-list-banner .skPlayer-list-searchbox:focus {
+    outline: none;
+}
+#skPlayer .skPlayer-list-banner .skPlayer-list-searchbox {
+    float: none;
+    position: absolute;
+    bottom: 6px;
+    left: 40px;
+    height: 17px;
+    width: 120px;
+    margin-top: 1px;
+    margin-right: 16px;
+    border: none;
+    font-size: 14px;
+    display: none;
+    text-align: left;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding-left: 3px;
+}
+#skPlayer .skPlayer-list-banner .skPlayer-list-searchbox.skPlayer-searchbox-show {
+  display: block;
+}
 #skPlayer .skPlayer-list-banner .skPlayer-list-add {
   position: absolute;
   bottom: 8px;
@@ -378,6 +413,9 @@
   -webkit-transition: 0.2s;
   -moz-transition: 0.2s;
   overflow: hidden;
+}
+#skPlayer .skPlayer-list li.skPlayer-hideCurMusic {
+  display: none;
 }
 #skPlayer .skPlayer-list li:hover {
   background-color: #ddd;
@@ -447,7 +485,7 @@
   overflow-y: hidden;
 }
 #skPlayer .skPlayer-lyric-block ul {
-  
+
 }
 #skPlayer .skPlayer-lyric-block li {
   text-align: center;
