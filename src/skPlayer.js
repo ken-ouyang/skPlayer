@@ -60,10 +60,22 @@ const readFile = (filepath, options) => {
 
 const scrollYWithDistance = (element,scrollDistance,scrollDuration) => {
     // element.scrollTop += scrollDistance;
-    let scrollStep = scrollDistance / (scrollDuration * 200/3 ),
-        scrollYTarget = element.scrollTop + scrollDistance,
-        scrollInterval = setInterval( () => {
-            if ( (scrollDistance > 0 && element.scrollTop < scrollYTarget) || (scrollDistance < 0 && element.scrollTop > scrollYTarget)  ) {
+
+    let scrollTopTarget = element.scrollTop + scrollDistance;
+    if(scrollTopTarget < 0) {
+        scrollTopTarget = 0;
+        scrollDistance = scrollTopTarget - element.scrollTop;
+        if(scrollDistance == 0) return;
+    }
+    else if(scrollTopTarget+element.offsetHeight > element.scrollHeight){
+        scrollTopTarget = element.scrollHeight-element.offsetHeight;
+        scrollDistance = scrollTopTarget - element.scrollTop;
+        if(scrollDistance == 0) return;
+    }
+    let scrollStep = scrollDistance / (scrollDuration * 200/3 );
+
+    let scrollInterval = setInterval( () => {
+            if ( (element.scrollTop < scrollTopTarget && scrollDistance > 0) || (element.scrollTop > scrollTopTarget && scrollDistance < 0) ) {
                 element.scrollTop += scrollStep;
             }
             else{
@@ -135,7 +147,7 @@ class skPlayer {
         this.toggleSearchBox = this.toggleSearchBox.bind(this);
         this.searchList = this.searchList.bind(this);
 		this.browseMusicFile = this.browseMusicFile.bind(this);
-		this.clearList = this.clearList.bind(this);
+        this.clearList = this.clearList.bind(this);
 		this.musicsChosenCallback = this.musicsChosenCallback.bind(this);
         this.browseLyricFile = this.browseLyricFile.bind(this);
         this.displayLyricFromFile = this.displayLyricFromFile.bind(this);
@@ -433,6 +445,7 @@ class skPlayer {
 		*/
         //switch to another music
         this.removeCurrentLyric();
+        this.dom.lyricul.scrollTop = 0;
 
 		this.audio.currentTime = 0;
         this.dom.musiclist.children[index].classList.add('skPlayer-curMusic');
@@ -554,7 +567,7 @@ class skPlayer {
 		});
 	}
 
-    //todo
+    //done
     toggleSearchBox(){
         this.dom.listSearchBox.classList.toggle('skPlayer-searchbox-show');
         this.dom.listSearchBox.value = '';
@@ -565,7 +578,7 @@ class skPlayer {
         }
     }
 
-    //todo
+    //done
     searchList(e){
         let str = this.dom.listSearchBox.value;
         let count = this.dom.musiclist.children.length;
@@ -734,29 +747,49 @@ class skPlayer {
     updateLyricPosition(time){
         if(this.dom.lyricul.children.length == 0) return;
         let curLyricLi = this.dom.lyricul.querySelector("li.curLyric");
-        let nextLyricLi
+        let nextLyricLi, nextTime, lastNextLyricLi, scrollDown = true;
+        let scrollDownNext = (ccurLyricLi) => {return ccurLyricLi.nextSibling;};
+        let scrollUpNext = (ccurLyricLi) => {return ccurLyricLi.previousSibling;};
+        let scrollNext = scrollDownNext;
         if(curLyricLi){
-            nextLyricLi = curLyricLi.nextSibling;
+            let currTime = parseFloat(curLyricLi.getAttribute("time"));
+            scrollDown = currTime < time;
+            if (!scrollDown)
+                scrollNext = scrollUpNext;
+
+            nextLyricLi = scrollNext(curLyricLi);
         }
         else{
             nextLyricLi = this.dom.lyricul.children[0];
         }
-        if(nextLyricLi){
-            let nextTime = parseFloat(nextLyricLi.getAttribute("time"));
-            if(nextTime < time){
-                if(curLyricLi)
-                    curLyricLi.classList.remove("curLyric");
-                nextLyricLi.classList.add("curLyric");
 
-                let ulRect = this.dom.lyricul.getBoundingClientRect(),
-                    liRect = nextLyricLi.getBoundingClientRect(),
-                    offset = liRect.top - ulRect.top;
-
-                if(offset - this.dom.lyricul.scrollTop + liRect.height/2  > this.dom.lyricblock.offsetHeight/2){
-                    let scrollAmount = offset + liRect.height/2 - this.dom.lyricblock.offsetHeight/2 - this.dom.lyricblock.scrollTop;
-                    scrollYWithDistance(this.dom.lyricblock, scrollAmount, 0.3);
-                }
+        while(nextLyricLi){
+            nextTime = parseFloat(nextLyricLi.getAttribute("time"));
+            if( (nextTime < time && scrollDown) || (nextTime > time && !scrollDown) ){
+                lastNextLyricLi = nextLyricLi;
+                nextLyricLi = scrollNext(nextLyricLi);
             }
+            else{ break;}
+        }
+
+        if(!lastNextLyricLi)
+            return;
+
+        if(curLyricLi)
+            curLyricLi.classList.remove("curLyric");
+
+        if(!scrollDown && nextLyricLi)
+            nextLyricLi.classList.add("curLyric");
+        else
+            lastNextLyricLi.classList.add("curLyric");
+
+        let ulRect = this.dom.lyricul.getBoundingClientRect(),
+            liRect = (!scrollDown && nextLyricLi)? nextLyricLi.getBoundingClientRect() : lastNextLyricLi.getBoundingClientRect(),
+            offset = liRect.top - ulRect.top;
+
+        if(offset - this.dom.lyricul.scrollTop + liRect.height/2  > this.dom.lyricblock.offsetHeight/2 || !scrollDown){
+            let scrollAmount = offset + liRect.height/2 - this.dom.lyricblock.offsetHeight/2 - this.dom.lyricblock.scrollTop;
+            scrollYWithDistance(this.dom.lyricblock, scrollAmount, 0.3);
         }
     }
 
@@ -777,12 +810,12 @@ class skPlayer {
 
     //done
     removeCurrentLyric(){
-        let lis = this.dom.lyricul.querySelectorAll("li");
-        if(lis.length){
-            for(let i = lis.length-1; i>=0; i--){
-                this.dom.lyricul.removeChild(lis[i]);
-            }
-        }
+        this.dom.lyricul.innerHTML = "";
+    }
+
+    //
+    showPlaybackRateBar(){
+
     }
 }
 
