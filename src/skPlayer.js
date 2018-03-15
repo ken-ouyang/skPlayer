@@ -104,6 +104,8 @@ class Music {
 			}
 			this[property] = option[property];
 		}
+        if(option.video)
+            this.video = option.video;
 	}
 }
 
@@ -153,9 +155,11 @@ class skPlayer {
         this.displayLyricFromFile = this.displayLyricFromFile.bind(this);
         this.updateLyricPosition = this.updateLyricPosition.bind(this);
         this.saveMusicListToJSON = this.saveMusicListToJSON.bind(this);
-        this.removeCurrentLyric = this.removeCurrentLyric.bind(this);
         this.togglePlaybackRateBar = this.togglePlaybackRateBar.bind(this);
         this.changePlaybackRate = this.changePlaybackRate.bind(this);
+        this.toggleVideoDisplay = this.toggleVideoDisplay.bind(this);
+        this.browseVideoFile = this.browseVideoFile.bind(this);
+        this.displayVideoFromFile = this.displayVideoFromFile.bind(this);
 
 		this.root.innerHTML = this.template();
         if(this.listType === 'normal'){
@@ -207,47 +211,52 @@ class skPlayer {
 	//render HTML
     template(){
         let html = `
-            <video class="skPlayer-video-player">
-                <source src="" type="video/mp4">
-            </video>
-            <audio class="skPlayer-source" src="" preload="auto"></audio>
-            <div class="skPlayer-picture">
-                <img class="skPlayer-cover" src="${default_cover_path}" alt="">
-                <a href="javascript:;" class="skPlayer-play-btn">
-                    <span class="skPlayer-left"></span>
-                    <span class="skPlayer-right"></span>
-                </a>
+            <div class="skPlayer-video-box">
+                <div class="skPlayer-add-video-button"></div>
+                <video class="skPlayer-video-player" controls>
+                    <source src="" type="video/mp4">
+                </video>
             </div>
-            <div class="skPlayer-control">
-                <p class="skPlayer-name"></p>
-                <p class="skPlayer-author"></p>
-                <div class="skPlayer-percent">
-                    <div class="skPlayer-line-loading"></div>
-                    <div class="skPlayer-line"></div>
+            <audio class="skPlayer-source" src="" preload="auto"></audio>
+            <div class="skPlayer-main">
+                <div class="skPlayer-picture">
+                    <img class="skPlayer-cover" src="${default_cover_path}" alt="">
+                    <a href="javascript:;" class="skPlayer-play-btn">
+                        <span class="skPlayer-left"></span>
+                        <span class="skPlayer-right"></span>
+                    </a>
                 </div>
-                <p class="skPlayer-time">
-                    <span class="skPlayer-cur">00:00</span>/<span class="skPlayer-total">00:00</span>
-                </p>
-                <div class="skPlayer-button skPlayer-volume" style="${this.isMobile ? 'display:none;' : ''}">
-                    <i class="skPlayer-icon"></i>
+                <div class="skPlayer-control">
+                    <p class="skPlayer-name"></p>
+                    <p class="skPlayer-author"></p>
                     <div class="skPlayer-percent">
+                        <div class="skPlayer-line-loading"></div>
                         <div class="skPlayer-line"></div>
                     </div>
-                </div>
-				<i class="skPlayer-button ${this.option.mode === 'singleloop' ? 'skPlayer-mode skPlayer-mode-loop' : 'skPlayer-mode'}"></i>
-                <i class="skPlayer-button skPlayer-lyric-switch"></i>
-                <div class="skPlayer-button skPlayer-list-switch">
-                    <i class="skPlayer-list-icon"></i>
-                </div>
-                <i class="skPlayer-button skPlayer-rate-button"></i>
-                <div class="skPlayer-rate-div">
-                    <input type="range" class="skPlayer-rate-bar" orient="vertical">
-                    <p class="skPlayer-rate-display">X<br />1</p>
+                    <p class="skPlayer-time">
+                        <span class="skPlayer-cur">00:00</span>/<span class="skPlayer-total">00:00</span>
+                    </p>
+                    <div class="skPlayer-button skPlayer-volume" style="${this.isMobile ? 'display:none;' : ''}">
+                        <i class="skPlayer-icon"></i>
+                        <div class="skPlayer-percent">
+                            <div class="skPlayer-line"></div>
+                        </div>
+                    </div>
+    				<i class="skPlayer-button ${this.option.mode === 'singleloop' ? 'skPlayer-mode skPlayer-mode-loop' : 'skPlayer-mode'}"></i>
+                    <i class="skPlayer-button skPlayer-lyric-switch"></i>
+                    <div class="skPlayer-button skPlayer-list-switch">
+                        <i class="skPlayer-list-icon"></i>
+                    </div>
+                    <i class="skPlayer-button skPlayer-rate-button"></i>
+                    <div class="skPlayer-rate-div">
+                        <input type="range" class="skPlayer-rate-bar" orient="vertical">
+                        <p class="skPlayer-rate-display">X<br />1</p>
+                    </div>
+                    <i class="skPlayer-button skPlayer-video-switch"></i>
                 </div>
             </div>
 			<div class="skPlayer-list-outter">
                 <ul class="skPlayer-list">
-
         `;
         for(let index in this.musicList){
             html += this.getLiHTML(index);
@@ -288,7 +297,7 @@ class skPlayer {
             switchbutton: this.root.querySelector('.skPlayer-list-switch'),
             modebutton: this.root.querySelector('.skPlayer-mode'),
             listsearchiconbutton: this.root.querySelector('.skPlayer-list-searchicon'),
-            listSearchBox: this.root.querySelector('.skPlayer-list-searchbox'),
+            listsearchbox: this.root.querySelector('.skPlayer-list-searchbox'),
 			listclearbutton: this.root.querySelector('.skPlayer-list-clear'),
 			listaddbutton: this.root.querySelector('.skPlayer-list-add'),
             musiclist: this.root.querySelector('.skPlayer-list'),
@@ -297,7 +306,10 @@ class skPlayer {
             playbackratebutton: this.root.querySelector('.skPlayer-rate-button'),
             playbackratediv: this.root.querySelector('.skPlayer-rate-div'),
             playbackratebar: this.root.querySelector('.skPlayer-rate-bar'),
-            playbackratedisplay: this.root.querySelector('.skPlayer-rate-display')
+            playbackratedisplay: this.root.querySelector('.skPlayer-rate-display'),
+            videoswitch: this.root.querySelector('.skPlayer-video-switch'),
+            videoplayer: this.root.querySelector('.skPlayer-video-player'),
+            addvideobutton: this.root.querySelector('.skPlayer-add-video-button')
         };
 
         if(this.option.listshow){
@@ -361,13 +373,15 @@ class skPlayer {
         this.dom.lyricbutton.addEventListener('click', this.toggleLyric);
         this.dom.addlyricbutton.addEventListener('click', this.browseLyricFile);
         this.dom.playbackratebutton.addEventListener('click', this.togglePlaybackRateBar);
+        this.dom.videoswitch.addEventListener('click', this.toggleVideoDisplay);
+        this.dom.addvideobutton.addEventListener('click', this.browseVideoFile);
         this.dom.playbackratebar.addEventListener('change', this.changePlaybackRate);
 
         if(!this.isMobile){
             this.dom.volumebutton.addEventListener('click', this.toggleMute);
         }
         this.dom.listsearchiconbutton.addEventListener('click', this.toggleSearchBox);
-        this.dom.listSearchBox.addEventListener('input', this.searchList);
+        this.dom.listsearchbox.addEventListener('input', this.searchList);
 		this.dom.listaddbutton.addEventListener('click', this.browseMusicFile);
 		this.dom.listclearbutton.addEventListener('click', this.clearList);
         this.dom.modebutton.addEventListener('click', this.switchMode);
@@ -461,8 +475,12 @@ class skPlayer {
         }
 		*/
         //switch to another music
-        this.removeCurrentLyric();
+        this.dom.lyricul.innerHTML = "";
         this.dom.lyricul.scrollTop = 0;
+        this.dom.videoplayer.pause();
+        this.dom.videoplayer.children[0].setAttribute("src","");
+        this.dom.videoplayer.load();
+        this.root.classList.remove("skPlayer-video-in");
 
 		this.audio.currentTime = 0;
         this.dom.musiclist.children[index].classList.add('skPlayer-curMusic');
@@ -484,6 +502,17 @@ class skPlayer {
             if(!this.dom.lyricblock.classList.contains('skPlayer-lyric-in'))
                 this.dom.lyricblock.classList.add('skPlayer-lyric-in')
             this.displayLyricFromFile(this.musicList[index].lyric,index);
+        }
+
+        if(!this.musicList[index].video){
+            if(this.dom.lyricblock.classList.contains('skPlayer-video-in'))
+                this.root.classList.remove('skPlayer-video-in');
+        }
+        else{
+            if(!this.dom.lyricblock.classList.contains('skPlayer-video-in')){
+                this.root.classList.add('skPlayer-video-in');
+            }
+            this.displayVideoFromFile(this.musicList[index].video,index);
         }
     }
 
@@ -586,9 +615,9 @@ class skPlayer {
 
     //done
     toggleSearchBox(){
-        this.dom.listSearchBox.classList.toggle('skPlayer-searchbox-show');
-        this.dom.listSearchBox.value = '';
-        this.dom.listSearchBox.focus();
+        this.dom.listsearchbox.classList.toggle('skPlayer-searchbox-show');
+        this.dom.listsearchbox.value = '';
+        this.dom.listsearchbox.focus();
         let count = this.dom.musiclist.children.length;
         for (let i = 0; i < count; i++) {
             this.dom.musiclist.children[i].classList.remove("skPlayer-hideCurMusic");
@@ -597,7 +626,7 @@ class skPlayer {
 
     //done
     searchList(e){
-        let str = this.dom.listSearchBox.value;
+        let str = this.dom.listsearchbox.value;
         let count = this.dom.musiclist.children.length;
         let patt = new RegExp(str,"i");
         if(str.length > 0) {
@@ -623,9 +652,14 @@ class skPlayer {
 	//done
 	clearList(){
 		this.dom.musiclist.innerHTML = '';
-        this.removeCurrentLyric();
+        this.dom.lyricul.innerHTML = "";
         if(this.dom.lyricblock.classList.contains('skPlayer-lyric-in'))
-            this.dom.lyricblock.classList.remove('skPlayer-lyric-in')
+            this.dom.lyricblock.classList.remove('skPlayer-lyric-in');
+        if(this.root.classList.contains('skPlayer-video-in')){
+            this.root.classList.remove('skPlayer-video-in');
+            this.rom.videoplayer.children[0].setAttribute("src","");
+            this.rom.videoplayer.load();
+        }
 		this.musicList = [];
         this.saveMusicListToJSON();
 		this.pause();
@@ -829,11 +863,6 @@ class skPlayer {
     }
 
     //done
-    removeCurrentLyric(){
-        this.dom.lyricul.innerHTML = "";
-    }
-
-    //done
     togglePlaybackRateBar(){
         this.dom.playbackratediv.classList.toggle("skPlayer-rate-div-show");
     }
@@ -861,6 +890,47 @@ class skPlayer {
         }
         this.dom.playbackratedisplay.innerHTML = "X<br />"+rate;
         this.audio.playbackRate = rate;
+    }
+
+    //done
+    toggleVideoDisplay(){
+        this.root.classList.toggle("video-on");
+    }
+
+    //done
+    browseVideoFile(){
+        console.log("browse video file");
+        let currentPlayingMusicLi;
+        if( (currentPlayingMusicLi = this.dom.musiclist.querySelector('.skPlayer-curMusic')) ){
+            let index = this.getElementIndex(currentPlayingMusicLi);
+            console.log(index);
+            dialog.showOpenDialog({
+                filters:[{name: 'Video', extensions: ['mp4']}],
+                properties:['openFile']
+                }, (filePaths) => {
+                    if(filePaths)
+                        this.displayVideoFromFile(filePaths[0], index);
+                });
+        }
+    }
+
+    //done
+    displayVideoFromFile(filePath,index){
+        console.log(filePath);
+        if (!filePath) return;
+        this.dom.videoplayer.children[0].setAttribute("src",filePath);
+        // let videoSourceTag = document.createElement("source");
+        // videoSourceTag.setAttribute("src",filePath);
+        // videoSourceTag.setAttribute("type","video/mp4");
+        // this.dom.videoplayer.appendChild(videoSourceTag);
+        if(!this.root.classList.contains("skPlayer-video-in")){
+            this.root.classList.add("skPlayer-video-in");
+        }
+        this.dom.videoplayer.load();
+        if(this.musicList[index].video != filePath){
+            this.musicList[index].video = filePath;
+            this.saveMusicListToJSON();
+        }
     }
 }
 
