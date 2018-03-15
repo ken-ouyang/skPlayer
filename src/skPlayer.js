@@ -582,10 +582,13 @@ class skPlayer {
     searchList(e){
         let str = this.dom.listSearchBox.value;
         let count = this.dom.musiclist.children.length;
+        let patt = new RegExp(str,"i");
         if(str.length > 0) {
             for (let i = 0; i < count; i++) {
-                let values1 = this.dom.musiclist.children[i].innerHTML;
-                if (values1.indexOf(str) == -1) {
+                let li = this.dom.musiclist.children[i],
+                    spanTitle = li.querySelector("span.skPlayer-list-name"),
+                    spanArtist = li.querySelector("span.skPlayer-list-author");
+                if (!patt.test(spanTitle.innerHTML) && !patt.test(spanArtist.innerHTML)) {
                     this.dom.musiclist.children[i].classList.add("skPlayer-hideCurMusic");
                 } else {
                     this.dom.musiclist.children[i].classList.remove("skPlayer-hideCurMusic");
