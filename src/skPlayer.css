@@ -80,6 +80,9 @@
 #skPlayer .skPlayer-play-btn.skPlayer-pause {
   left: 50%;
 }
+::placeholder {
+    color: #d3d3e0;
+}
 #skPlayer .skPlayer-play-btn.skPlayer-pause .skPlayer-left {
   border: 14px solid #fff;
   border-left: 2px solid #fff;
@@ -457,6 +460,17 @@
   background-size: 16px 16px;
   position: absolute;
 }
+#skPlayer .skPlayer-list .skPlayer-single-remove {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  height: 17px;
+  width: 17px;
+  background-image: url(./icon/clear_list.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+}
 #skPlayer .skPlayer-list-banner .skPlayer-list-clear {
   position: absolute;
   bottom: 8px;
@@ -529,7 +543,8 @@
 }
 #skPlayer .skPlayer-list .skPlayer-list-author {
   color: #666;
-  float: right;
+  position: absolute;
+  right: 35px;
   max-width: 107px;
   overflow: hidden;
   white-space: nowrap;
