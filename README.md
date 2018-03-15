@@ -2,13 +2,16 @@
 A simple but elegant HTML5 based player 
 
 # Dependencies
+```
 npm
+```
 
 # Usage
-## Snippet
+```
+cd /path/to/skPlayer
 npm install
 npm start
-
+```
 
 # Basic Features:
 * Basic Interface
