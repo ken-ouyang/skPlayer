@@ -144,6 +144,8 @@ class skPlayer {
         this.toggleLyric = this.toggleLyric.bind(this);
         this.toggleMute = this.toggleMute.bind(this);
         this.switchMode = this.switchMode.bind(this);
+        this.toggleSearchBox = this.toggleSearchBox.bind(this);
+        this.searchList = this.searchList.bind(this);
 		this.browseMusicFile = this.browseMusicFile.bind(this);
         this.clearList = this.clearList.bind(this);
 		this.musicsChosenCallback = this.musicsChosenCallback.bind(this);
@@ -253,6 +255,8 @@ class skPlayer {
         html += `
                 </ul>
     			<div class="skPlayer-list-banner">
+                    <i class="skPlayer-button skPlayer-list-searchicon"></i>
+                    <input type="text" placeholder="Search.." class="skPlayer-list-searchbox"></i>
     				<i class="skPlayer-button skPlayer-list-clear"></i>
     				<i class="skPlayer-button skPlayer-list-add"></i>
     			</div>
@@ -283,6 +287,8 @@ class skPlayer {
             addlyricbutton: this.root.querySelector('.skPlayer-add-lyric-button'),
             switchbutton: this.root.querySelector('.skPlayer-list-switch'),
             modebutton: this.root.querySelector('.skPlayer-mode'),
+            listsearchiconbutton: this.root.querySelector('.skPlayer-list-searchicon'),
+            listSearchBox: this.root.querySelector('.skPlayer-list-searchbox'),
 			listclearbutton: this.root.querySelector('.skPlayer-list-clear'),
 			listaddbutton: this.root.querySelector('.skPlayer-list-add'),
             musiclist: this.root.querySelector('.skPlayer-list'),
@@ -360,6 +366,8 @@ class skPlayer {
         if(!this.isMobile){
             this.dom.volumebutton.addEventListener('click', this.toggleMute);
         }
+        this.dom.listsearchiconbutton.addEventListener('click', this.toggleSearchBox);
+        this.dom.listSearchBox.addEventListener('input', this.searchList);
 		this.dom.listaddbutton.addEventListener('click', this.browseMusicFile);
 		this.dom.listclearbutton.addEventListener('click', this.clearList);
         this.dom.modebutton.addEventListener('click', this.switchMode);
@@ -575,6 +583,39 @@ class skPlayer {
 			}
 		});
 	}
+
+    //done
+    toggleSearchBox(){
+        this.dom.listSearchBox.classList.toggle('skPlayer-searchbox-show');
+        this.dom.listSearchBox.value = '';
+        this.dom.listSearchBox.focus();
+        let count = this.dom.musiclist.children.length;
+        for (let i = 0; i < count; i++) {
+            this.dom.musiclist.children[i].classList.remove("skPlayer-hideCurMusic");
+        }
+    }
+
+    //done
+    searchList(e){
+        let str = this.dom.listSearchBox.value;
+        let count = this.dom.musiclist.children.length;
+        if(str.length > 0) {
+            for (let i = 0; i < count; i++) {
+                let values1 = this.dom.musiclist.children[i].innerHTML;
+                if (values1.indexOf(str) == -1) {
+                    this.dom.musiclist.children[i].classList.add("skPlayer-hideCurMusic");
+                } else {
+                    this.dom.musiclist.children[i].classList.remove("skPlayer-hideCurMusic");
+                }
+            }
+        } else {
+            for (let i = 0; i < count; i++) {
+                this.dom.musiclist.children[i].classList.remove("skPlayer-hideCurMusic");
+            }
+        }
+
+
+    }
 
 	//done
 	clearList(){
