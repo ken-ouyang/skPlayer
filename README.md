@@ -16,22 +16,22 @@ npm start
 # Basic Features:
 * Basic Interface
 * Music Information Display
-* Music Management(DataBase)
+* Music Management
+* Music Searching
+* Playback rate changes
+* Use our own function to play wav file
 
 # Advanced Features:
-* CJK characters support
 * Other music type (mp3)
 * ProgressBar
 * Playback Mode
 * NetEase Playlist
 * Support all OS
 * Synchonized Lyric Display
+* CJK characters support
+* Video Player
 
 # TODO
-* Use our own function to play wav file
-* Music Searching
-* Playback rate changes
-* Video Player
 * Visualization
 
 # Credits
