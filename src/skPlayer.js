@@ -139,6 +139,7 @@ class skPlayer {
         this.displayLyricFromFile = this.displayLyricFromFile.bind(this);
         this.updateLyricPosition = this.updateLyricPosition.bind(this);
         this.saveMusicListToJSON = this.saveMusicListToJSON.bind(this);
+        this.removeCurrentLyric = this.removeCurrentLyric.bind(this);
 
 		this.root.innerHTML = this.template();
         if(this.listType === 'normal'){
@@ -190,6 +191,9 @@ class skPlayer {
 	//render HTML
     template(){
         let html = `
+            <video class="skPlayer-video-player">
+                <source src="" type="video/mp4">
+            </video>
             <audio class="skPlayer-source" src="" preload="auto"></audio>
             <div class="skPlayer-picture">
                 <img class="skPlayer-cover" src="${default_cover_path}" alt="">
@@ -219,6 +223,7 @@ class skPlayer {
                 <div class="skPlayer-button skPlayer-list-switch">
                     <i class="skPlayer-list-icon"></i>
                 </div>
+                <i class="skPlayer-button skPlayer-rate-button"></i>
             </div>
 			<div class="skPlayer-list-outter">
                 <ul class="skPlayer-list">
@@ -419,12 +424,8 @@ class skPlayer {
         }
 		*/
         //switch to another music
-        let lis = this.dom.lyricul.querySelectorAll("li");
-        if(lis.length){
-            for(let i = lis.length-1; i>=0; i--){
-                this.dom.lyricul.removeChild(lis[i]);
-            }
-        }
+        this.removeCurrentLyric();
+
 		this.audio.currentTime = 0;
         this.dom.musiclist.children[index].classList.add('skPlayer-curMusic');
         this.dom.name.innerHTML = this.musicList[index].name;
@@ -548,6 +549,9 @@ class skPlayer {
 	//done
 	clearList(){
 		this.dom.musiclist.innerHTML = '';
+        this.removeCurrentLyric();
+        if(this.dom.lyricblock.classList.contains('skPlayer-lyric-in'))
+            this.dom.lyricblock.classList.remove('skPlayer-lyric-in')
 		this.musicList = [];
         this.saveMusicListToJSON();
 		this.pause();
@@ -728,6 +732,16 @@ class skPlayer {
             else
                 console.log("write success");
         });
+    }
+
+    //done
+    removeCurrentLyric(){
+        let lis = this.dom.lyricul.querySelectorAll("li");
+        if(lis.length){
+            for(let i = lis.length-1; i>=0; i--){
+                this.dom.lyricul.removeChild(lis[i]);
+            }
+        }
     }
 }
 

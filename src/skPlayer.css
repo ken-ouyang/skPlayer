@@ -306,6 +306,17 @@
 #skPlayer .skPlayer-control .skPlayer-mode.skPlayer-mode-loop {
   background-image: url(./icon/loop_single.png);
 }
+#skPlayer .skPlayer-control .skPlayer-rate-button{
+  width: 20px;
+  height: 20px;
+  background-image: url(./icon/rate.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 20px 20px;
+  position: absolute;
+  right: 13px;
+  top: 10px;
+}
 #skPlayer .skPlayer-list-outter {
   display: none;
   width: 100%;
@@ -476,4 +487,12 @@
 }
 #skPlayer .skPlayer-lyric-block.skPlayer-lyric-in .skPlayer-add-lyric-button {
   display: none;
+}
+#skPlayer .skPlayer-video-player {
+  display: none;
+  width: 100%;
+  height: 300px;
+}
+#skPlayer.video-on .skPlayer-video-player {
+  display: block;
 }
