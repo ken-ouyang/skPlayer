@@ -200,6 +200,7 @@ class skPlayer {
                     <span class="skPlayer-list-index">${parseInt(index) + 1}</span>
                     <span class="skPlayer-list-name" title="${this.musicList[index].name}">${this.musicList[index].name}</span>
                     <span class="skPlayer-list-author" title="${this.musicList[index].author}">${this.musicList[index].author}</span>
+                    <i class="skPlayer-single-remove"></i>
                 </li>
             `
 	}
@@ -362,7 +363,11 @@ class skPlayer {
         this.dom.addlyricbutton.addEventListener('click', this.browseLyricFile);
         this.dom.playbackratebutton.addEventListener('click', this.togglePlaybackRateBar);
         this.dom.playbackratebar.addEventListener('change', this.changePlaybackRate);
-
+        document.addEventListener('click', (e)=>{
+            if(e.target && e.target.classList.contains("skPlayer-single-remove")){
+                this.removeFromList(e.target.parentNode);
+            }
+        });
         if(!this.isMobile){
             this.dom.volumebutton.addEventListener('click', this.toggleMute);
         }
@@ -375,7 +380,7 @@ class skPlayer {
             let target,index,curIndex;
             if(e.target.tagName.toUpperCase() === 'LI'){
                 target = e.target;
-            }else if(e.target.parentElement.tagName.toUpperCase() === 'LI'){
+            }else if(!e.target.classList.contains("skPlayer-single-remove") && e.target.parentElement.tagName.toUpperCase() === 'LI'){
                 target = e.target.parentElement;
             }else{
                 return;
@@ -690,18 +695,25 @@ class skPlayer {
 	//done
 	removeFromList(node){
 		let nodeCurr = node;
+        console.log(nodeCurr);
+        console.log(nodeCurr.nextElementSibling);
 		let nodeAfter;
-		while ((nodeAfter = nodeCurr.nextSibling)){
+		while ((nodeAfter = nodeCurr.nextElementSibling)){
 			let indexNode = nodeAfter.querySelector('.skPlayer-list-index');
-			indexNode.innerHTML = parseInt(indexNode.innerHTML) + 1;
+			indexNode.innerHTML = parseInt(indexNode.innerHTML) - 1;
 			nodeCurr = nodeAfter;
 		}
+        if(node.classList.contains("skPlayer-curMusic")){
+            this.next();
+        }
 		this.musicList.splice(this.getElementIndex(node),1);
 		this.dom.musiclist.removeChild(node);
 
 		if(this.musicList.length == 0){
 			this.pause();
 		}
+
+        this.saveMusicListToJSON();
 	}
 
 	//done
