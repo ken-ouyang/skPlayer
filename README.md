@@ -1,14 +1,19 @@
-# skPlayer 3.0
-![npm](https://img.shields.io/npm/v/skplayer.svg) ![npm](https://img.shields.io/npm/l/skplayer.svg) ![npm](https://img.shields.io/npm/dt/skplayer.svg) ![npm](https://img.shields.io/badge/made%20by-Scott-orange.svg)  
+# CSCI3280 Music Player
 A simple but elegant HTML5 based player 
 
-# Demo、下载、使用、文档
-[移步Doc](http://www.chengfeilong.com/skPlayer/)
+# Dependencies
+npm
+
+# Usage
+## Snippet
+npm install
+npm start
 
 
 # Basic Features:
 * Basic Interface
 * Music Information Display
+* Music Management(DataBase)
 
 # Advanced Features:
 * CJK characters support
@@ -17,19 +22,15 @@ A simple but elegant HTML5 based player 
 * Playback Mode
 * NetEase Playlist
 * Support all OS
-
+* Synchonized Lyric Display
 
 # TODO
 * Use our own function to play wav file
 * Music Searching
-* Music Management(DataBase)
-
 * Playback rate changes
-* Lyric Display (Synchonized) (Advanced)
-* Video Player (Optional)
-* Visualization (Optional)
-* Interface improvement
+* Video Player
+* Visualization
 
-# Citation
+# Credits
 Thanks[@wangpengfei15975](https://github.com/wangpengfei15975) for the open source music player.
 Thanks[@aadsm](https://github.com/aadsm/JavaScript-ID3-Reader) for the media tags reader.
