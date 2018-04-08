@@ -1,8 +1,9 @@
 const electron = require('electron')
 // Module to control application life.
-const app = electron.app
+// const app = electron.app
 // Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
+// const BrowserWindow = electron.BrowserWindow
+const {app, BrowserWindow, Menu} = electron;
 
 const path = require('path')
 const url = require('url')
@@ -22,6 +23,8 @@ function createWindow () {
     slashes: true
   }))
 
+
+
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 
@@ -37,7 +40,12 @@ function createWindow () {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', function(){
+    createWindow()
+    // Build menu from template
+    const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+    // Insert menu
+    Menu.setApplicationMenu(mainMenu)})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -54,7 +62,64 @@ app.on('activate', function () {
   if (mainWindow === null) {
     createWindow()
   }
-})
+  // Build menu from template
+  const mainMenu = Menu.buildFromTemplate(mainMenuTemplate)
+  // Insert menu
+  Menu.setApplicationMenu(mainMenu)})
 
+
+// Create menu template
+const mainMenuTemplate =  [
+  // Each object is a dropdown
+  {
+    label: 'Control',
+    submenu:[
+      {
+        label:'Add Connection',
+        click(){
+          createAddWindow();
+        }
+      },
+      // {
+      //   label:'Remove Connection',
+      //   click(){
+      //     mainWindow.webContents.send('item:clear');
+      //   }
+      // },
+      {
+        label: 'Quit',
+        accelerator:process.platform == 'darwin' ? 'Command+Q' : 'Ctrl+Q',
+        click(){
+          app.quit();
+        }
+      }
+    ]
+  }
+];
+
+// Handle add item window
+function createAddWindow(){
+  addWindow = new BrowserWindow({
+    width: 300,
+    height:150,
+    title:'Add New Connection'
+  });
+  addWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'addConnection.html'),
+    protocol: 'file:',
+    slashes:true
+  }));
+  // Handle garbage collection
+  addWindow.on('close', function(){
+    addWindow = null;
+  });
+}
+
+
+// If OSX, add empty object to menu
+if(process.platform == 'darwin'){
+  mainMenuTemplate.unshift({});
+}
+//
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

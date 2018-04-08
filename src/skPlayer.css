@@ -644,3 +644,44 @@
 #skPlayer.skPlayer-video-in .skPlayer-add-video-button{
     display:none;
 }
+
+.button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 2px 2px;
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+#connectButton {
+    background-color: #d94240;
+    color: white;
+    border: None;
+}
+
+#connectButton:hover {
+    background-color: #e26766;
+    color: white;
+}
+
+input[type=text] {
+    width: 100%;
+    padding: 12px 6px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 1px solid #555;
+    border-radius: 12px;
+    font-size: 16px;
+    outline: none;
+}
+
+input[type=text]:focus {
+    border: 1px solid #d94240;
+}
