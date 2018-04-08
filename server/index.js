@@ -62,7 +62,7 @@ io.on( 'connection', function( socket ) {
         let MusicItemCollection = mongoose.model('MusicItem', MusicItemSchema);
         MusicItemCollection.find(musicInfo, function(err, foundItems){
             if(foundItems.length == 0){
-                socket.emit('error', 'not found music');
+                socket.emit('csci3280_error', 'not found music');
                 return;
             }
             let owner_id = foundItems[0].owner_id;
@@ -70,7 +70,7 @@ io.on( 'connection', function( socket ) {
             let ns = io.of('/');
             let owner_socket = ns.connected[socket.id];
             if(owner_socket == null || typeof owner_socket == typeof undefined){
-                socket.emit('error', 'not found owner');
+                socket.emit('csci3280_error', 'not found owner');
                 return;
             }
             console.log('send request to '+owner_socket.id);

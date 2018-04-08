@@ -8,6 +8,7 @@ const {ipcRenderer} = electron;
 const {dialog} = electron.remote;
 const fs = require('fs');
 const jsmediatags = require("jsmediatags");
+let socket_connected = false;
 let url = "http://localhost:8080";
 const socket = io(url);
 const ss = require('socket.io-stream');
@@ -973,6 +974,7 @@ socket.on("build", function(data){
     }
     setTimeout(function(){
         socket.emit('requestMusic', {name: 'Paris', author: 'The Chainsmokers'});
+        //create a block covering everything
     }, 5000);
 });
 
@@ -1017,4 +1019,8 @@ socket.on("deleteMusicItem", function(data){
     let name = data.name;
     let author = data.author;
     //
+});
+socket.on("csci3280_error", function(err){
+    console.log(err);
+    //remove the block
 });
