@@ -8,6 +8,9 @@ const {ipcRenderer} = electron;
 const {dialog} = electron.remote;
 const fs = require('fs');
 const jsmediatags = require("jsmediatags");
+let url = "http://localhost:8080";
+const socket = io(url);
+const ss = require('socket.io-stream');
 
 const Util = {
     leftDistance: (el) => {
@@ -47,9 +50,9 @@ const Util = {
     }
 };
 
-const readFile = (filepath, options) => {
+const readFile = (filePath, options) => {
   return new Promise((resolve, reject) => {
-    fs.readFile(filepath, options, (err, buffer) => {
+    fs.readFile(filePath, options, (err, buffer) => {
       if (err) {
         return reject(err);
       }
@@ -668,6 +671,7 @@ class skPlayer {
 		this.musicList = [];
         this.saveMusicListToJSON();
 		this.pause();
+        updateMusicList();
 	}
 
 	//done
@@ -724,6 +728,7 @@ class skPlayer {
         }
         //should also update the music-list.json
         this.saveMusicListToJSON();
+        updateMusicList();
     }
 
 	//done
@@ -755,6 +760,7 @@ class skPlayer {
 		}
 
         this.saveMusicListToJSON();
+        updateMusicList();
 	}
 
 	//done
@@ -954,4 +960,61 @@ class skPlayer {
 }
 
 
+
+const updateMusicList = () => {
+    socket.emit('updateClientList', player.musicList);
+}
+
 module.exports = skPlayer;
+
+socket.on("build", function(data){
+    if(data == "success"){
+        updateMusicList();
+    }
+    setTimeout(function(){
+        socket.emit('requestMusic', {name: 'Paris', author: 'The Chainsmokers'});
+    }, 5000);
+});
+
+
+socket.on("requestMusicFile", function(data){
+    console.log("accept request from server and the requestor is " + data.requestor_id);
+    //accept request from server
+    let name = data.musicInfo.name;
+    let author = data.musicInfo.author;
+    let stream = ss.createStream();
+
+    //!!!!change the file path refering to the name and author
+    let filePath = "/Users/a1/Desktop/TANG/Github/skPlayer/paris.mp3";
+    ss(socket).emit('musicFile', stream, {
+        requestor_id: data.requestor_id,
+        musicInfo: data.musicInfo,
+        filename: filePath.split('/').pop()
+    });
+    fs.createReadStream(filePath).pipe(stream);
+});
+ss(socket).on('musicFile', function(stream, data){
+    let name = data.musicInfo.name;
+    let author = data.musicInfo.author;
+    let filename = data.filename;
+    let dir = './temp';
+    if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+    }
+    let filePath = dir + '/'+ filename;
+    stream.pipe(fs.createWriteStream(filePath));
+    console.log("write file " + filePath);
+    //set the item in the playlist to local
+
+    //then play it
+
+});
+socket.on("newMusicList", function(musicList){
+    //update music list
+
+});
+socket.on("deleteMusicItem", function(data){
+    let name = data.name;
+    let author = data.author;
+    //
+});

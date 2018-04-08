@@ -1,0 +1,28 @@
+{
+  "name": "csci3280proj_srvr",
+  "version": "1.0.0",
+  "description": "CSCI3280 Project Music Player Server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "rangyf",
+  "license": "MIT",
+  "dependencies": {
+    "express": "*",
+    "mongoose": "^5.0.13",
+    "npm": "*",
+    "socket.io": "*",
+    "component-bind": "*",
+    "debug": "*"
+  },
+  "devDependencies": {
+    "blob": "*",
+    "browserify": "*",
+    "expect.js": "*",
+    "mocha": "*",
+    "socket.io-client": "*",
+    "zuul": "*",
+    "zuul-ngrok": "*"
+  }
+}

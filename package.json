@@ -33,9 +33,17 @@
     "sass-loader": "^6.0.6",
     "style-loader": "^0.18.2",
     "webpack": "^3.0.0",
-    "webpack-dev-server": "^2.5.0"
+    "webpack-dev-server": "^2.5.0",
+    "blob": "0.0.4",
+    "browserify": "^16.1.1",
+    "expect.js": "^0.3.1",
+    "mocha": "*",
+    "zuul": "*",
+    "zuul-ngrok": "*",
+    "socket.io-client": "^2.1.0"
   },
   "dependencies": {
-    "jsmediatags": "^3.8.1"
+    "jsmediatags": "^3.8.1",
+    "socket.io-stream": "^0.9.1"
   }
 }
