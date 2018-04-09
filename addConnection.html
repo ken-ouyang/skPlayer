@@ -8,21 +8,19 @@
   <div class="container">
       <div>
         <label>Enter IP Adress</label>
-        <input type="text" id="item" autofocus>
+        <input type="text" id="ip" autofocus>
       </div>
-      <button id="connectButton" class="button" type="submit">Add Connection</button>
+      <input type="submit" id="connectButton" class="button" value="Add Connection"/>
   </div>
 
   <script>
-    // const electron = require('electron');
-    // const {ipcRenderer} = electron;
-    // document.querySelector('form').addEventListener('submit', submitForm);
-    // function submitForm(e){
-    //   e.preventDefault();
-    //   const item = document.querySelector('#item').value;
-    //   console.log(ipcRenderer);
-    //   ipcRenderer.send('item:add', item);
-    // }
+    const electron = require('electron');
+    const {ipcRenderer} = electron;
+    document.querySelector('#connectButton').addEventListener('click', (e)=>{
+        let ip = document.querySelector('#ip').value;
+        console.log(ip);
+        ipcRenderer.send('ip:set', ip);
+    });
   </script>
 </body>
 </html>

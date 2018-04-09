@@ -10,8 +10,8 @@ const fs = require('fs');
 const jsmediatags = require("jsmediatags");
 let socket_connected = false;
 // let url = "http://localhost:8080";
-let url = "http://172.20.10.14:8080";
-const socket = io(url);
+let url;
+let socket;
 const ss = require('socket.io-stream');
 
 const Util = {
@@ -972,111 +972,113 @@ class skPlayer {
 }
 
 const updateMusicList = () => {
-    socket.emit('updateClientList', player.musicList);
+    if(socket_connected)
+        socket.emit('updateClientList', player.musicList);
 }
 
 module.exports = skPlayer;
 
-socket.on("build", function(data){
-    if(data == "success"){
-        updateMusicList();
-    }
-    // setTimeout(function(){
-    //     socket.emit('requestMusic', {name: '心做し', author: 'majiko'});
-    //     //create a block covering everything
-    // }, 5000);
-});
+ipcRenderer.on('ip:set', function(e, ip){
+    socket_connected = true;
+    url = "http://"+ip+":8080";
+    socket = io(url);
+    console.log(ip);
 
-
-socket.on("requestMusicFile", function(data){
-    console.log("accept request from server and the requestor is " + data.requestor_id);
-    //accept request from server
-    let name = data.musicInfo.name;
-    let author = data.musicInfo.author;
-    let stream = ss.createStream();
-    let filePath = "";
-    for (let i in player.musicList){
-        if (name == player.musicList[i].name && author == player.musicList[i].author)
-        {
-            filePath = player.musicList[i].path;
-            break;
+    socket.on("build", function(data){
+        if(data == "success"){
+            updateMusicList();
         }
-    }
-    // console.log(filePath);
-    ss(socket).emit('musicFile', stream, {
-        requestor_id: data.requestor_id,
-        musicInfo: data.musicInfo,
-        filename: 'temp'+Math.floor(Math.random()*10000)+'.'+filePath.split('.').pop()
     });
-    fs.createReadStream(filePath).pipe(stream);
-});
-ss(socket).on('musicFile', function(stream, data){
-    console.log("received file");
-    let name = data.musicInfo.name;
-    let author = data.musicInfo.author;
-    let filename = data.filename;
-    let dir = './temp';
-    if (!fs.existsSync(dir)){
-        fs.mkdirSync(dir);
-    }
-    let filePath = dir + '/'+ filename;
-    stream.pipe(fs.createWriteStream(filePath));
-    console.log("write file " + filePath);
-    //set the item in the playlist to local
-    let j = 0;
-    for (let i in player.musicList){
-        if (name == player.musicList[i].name && author == player.musicList[i].author)
-        {
-            player.musicList[i].path = filePath;
-            player.musicList[i].type = "local";
-            j = i;
-            break;
-        }
-    }
-
-    //then play it
-    player.saveMusicListToJSON();
-    // player.switchMusic(Number(j));
-    setTimeout(()=>{
-        console.log("after 1 sec");
-        console.log(filePath);
-        player.audio.setAttribute("src",filePath);
-        player.play();
-    },1000);
-
-
-
-});
-socket.on("newMusicList", function(musicList){
-
-    for(let i in musicList){
-        // check existence
-        let exist = false;
-        for (let j in player.musicList)
-        {
-            if (musicList[i].name == player.musicList[j].name && musicList[i].author == player.musicList[j].author){
-                exist = true;
+    socket.on("requestMusicFile", function(data){
+        console.log("accept request from server and the requestor is " + data.requestor_id);
+        //accept request from server
+        let name = data.musicInfo.name;
+        let author = data.musicInfo.author;
+        let stream = ss.createStream();
+        let filePath = "";
+        for (let i in player.musicList){
+            if (name == player.musicList[i].name && author == player.musicList[i].author)
+            {
+                filePath = player.musicList[i].path;
+                break;
             }
         }
-        if (!exist){
-            //type,path,title,artist,cover
-            player.addMusicToList('P2P','none',musicList[i].name,musicList[i].author,default_cover_path);
-
+        // console.log(filePath);
+        ss(socket).emit('musicFile', stream, {
+            requestor_id: data.requestor_id,
+            musicInfo: data.musicInfo,
+            filename: 'temp'+Math.floor(Math.random()*10000)+'.'+filePath.split('.').pop()
+        });
+        fs.createReadStream(filePath).pipe(stream);
+    });
+    ss(socket).on('musicFile', function(stream, data){
+        console.log("received file");
+        let name = data.musicInfo.name;
+        let author = data.musicInfo.author;
+        let filename = data.filename;
+        let dir = './temp';
+        if (!fs.existsSync(dir)){
+            fs.mkdirSync(dir);
         }
-    }
-});
-socket.on("deleteMusicItem", function(data){
-    let name = data.name;
-    let author = data.author;
-    for (let i in player.musicList){
-        if (name == player.musicList[i].name && author == player.musicList[i].author)
-        {
-            player.removeFromList(player.musiclist.children[i]);
+        let filePath = dir + '/'+ filename;
+        stream.pipe(fs.createWriteStream(filePath));
+        console.log("write file " + filePath);
+        //set the item in the playlist to local
+        let j = 0;
+        for (let i in player.musicList){
+            if (name == player.musicList[i].name && author == player.musicList[i].author)
+            {
+                player.musicList[i].path = filePath;
+                player.musicList[i].type = "local";
+                j = i;
+                break;
+            }
         }
-    }
 
-});
-socket.on("csci3280_error", function(err){
-    console.log(err);
-    //remove the block
+        //then play it
+        player.saveMusicListToJSON();
+        // player.switchMusic(Number(j));
+        setTimeout(()=>{
+            console.log("after 1 sec");
+            console.log(filePath);
+            player.audio.setAttribute("src",filePath);
+            player.play();
+        },1000);
+
+
+
+    });
+    socket.on("newMusicList", function(musicList){
+
+        for(let i in musicList){
+            // check existence
+            let exist = false;
+            for (let j in player.musicList)
+            {
+                if (musicList[i].name == player.musicList[j].name && musicList[i].author == player.musicList[j].author){
+                    exist = true;
+                }
+            }
+            if (!exist){
+                //type,path,title,artist,cover
+                player.addMusicToList('P2P','none',musicList[i].name,musicList[i].author,default_cover_path);
+
+            }
+        }
+    });
+    socket.on("deleteMusicItem", function(data){
+        let name = data.name;
+        let author = data.author;
+        for (let i in player.musicList){
+            if (name == player.musicList[i].name && author == player.musicList[i].author)
+            {
+                player.removeFromList(player.musiclist.children[i]);
+            }
+        }
+
+    });
+    socket.on("csci3280_error", function(err){
+        console.log(err);
+        //remove the block
+    });
 });

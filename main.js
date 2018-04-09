@@ -3,16 +3,17 @@ const electron = require('electron')
 // const app = electron.app
 // Module to create native browser window.
 // const BrowserWindow = electron.BrowserWindow
-const {app, BrowserWindow, Menu} = electron;
+const {app, BrowserWindow, Menu, ipcMain} = electron;
 
-const path = require('path')
-const url = require('url')
+const path = require('path');
+const url = require('url');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow
+let mainWindow;
+let connectionWindow;
 
-function createWindow () {
+let createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 800, height: 600})
 
@@ -33,7 +34,7 @@ function createWindow () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    mainWindow = null
+    mainWindow = null;
   })
 }
 
@@ -41,11 +42,11 @@ function createWindow () {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', function(){
-    createWindow()
-    // // Build menu from template
-    // const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
-    // // Insert menu
-    // Menu.setApplicationMenu(mainMenu)
+    createWindow();
+    // Build menu from template
+    const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+    // Insert menu
+    Menu.setApplicationMenu(mainMenu);
 })
 
 // Quit when all windows are closed.
@@ -53,7 +54,7 @@ app.on('window-all-closed', function () {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
-    app.quit()
+    app.quit();
   }
 })
 
@@ -61,12 +62,12 @@ app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
-    createWindow()
+    createWindow();
   }
-  // // Build menu from template
-  // const mainMenu = Menu.buildFromTemplate(mainMenuTemplate)
-  // // Insert menu
-  // Menu.setApplicationMenu(mainMenu)
+  // Build menu from template
+  const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+  // Insert menu
+  Menu.setApplicationMenu(mainMenu);
 })
 
 
@@ -79,15 +80,9 @@ const mainMenuTemplate =  [
       {
         label:'Add Connection',
         click(){
-          createAddWindow();
+          createConnectionWindow();
         }
       },
-      // {
-      //   label:'Remove Connection',
-      //   click(){
-      //     mainWindow.webContents.send('item:clear');
-      //   }
-      // },
       {
         label: 'Quit',
         accelerator:process.platform == 'darwin' ? 'Command+Q' : 'Ctrl+Q',
@@ -100,22 +95,27 @@ const mainMenuTemplate =  [
 ];
 
 // Handle add item window
-function createAddWindow(){
-  addWindow = new BrowserWindow({
+let createConnectionWindow = () => {
+  connectionWindow = new BrowserWindow({
     width: 300,
     height:150,
     title:'Add New Connection'
   });
-  addWindow.loadURL(url.format({
+  connectionWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'addConnection.html'),
     protocol: 'file:',
     slashes:true
   }));
   // Handle garbage collection
-  addWindow.on('close', function(){
-    addWindow = null;
+  connectionWindow.on('close', function(){
+    connectionWindow = null;
   });
 }
+
+ipcMain.on('ip:set', function(e,ip){
+  connectionWindow.close();
+  mainWindow.webContents.send('ip:set',ip);
+});
 
 
 // If OSX, add empty object to menu
@@ -125,3 +125,18 @@ if(process.platform == 'darwin'){
 //
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+mainMenuTemplate.push({
+  label: 'Developer Tools',
+  submenu:[
+    {
+      role: 'reload'
+    },
+    {
+      label: 'Toggle DevTools',
+      accelerator:process.platform == 'darwin' ? 'Command+I' : 'Ctrl+I',
+      click(item, focusedWindow){
+        focusedWindow.toggleDevTools();
+      }
+    }
+  ]
+});
