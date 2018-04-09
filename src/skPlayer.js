@@ -9,7 +9,8 @@ const {dialog} = electron.remote;
 const fs = require('fs');
 const jsmediatags = require("jsmediatags");
 let socket_connected = false;
-let url = "http://localhost:8080";
+// let url = "http://localhost:8080";
+let url = "http://172.20.10.14:8080";
 const socket = io(url);
 const ss = require('socket.io-stream');
 
@@ -1003,7 +1004,7 @@ socket.on("requestMusicFile", function(data){
     ss(socket).emit('musicFile', stream, {
         requestor_id: data.requestor_id,
         musicInfo: data.musicInfo,
-        filename: filePath.split('/').pop()
+        filename: 'temp'+Math.floor(Math.random()*10000)+'.'+filePath.split('.').pop()
     });
     fs.createReadStream(filePath).pipe(stream);
 });
@@ -1050,7 +1051,7 @@ socket.on("newMusicList", function(musicList){
             let music = new Music({
                 type: 'P2P',
                 name: musicList[i].name,
-                path: musicList[i].path,
+                path: 'none',
                 author: musicList[i].author,
                 cover: 'none',
                 lyric: 'none'
@@ -1073,7 +1074,7 @@ socket.on("deleteMusicItem", function(data){
     for (let i in player.musicList){
         if (name == player.musicList[i].name && author == player.musicList[i].author)
         {
-            player.removeFromList(player.musiclist.children);            
+            player.removeFromList(player.musiclist.children[i]);
         }
     }
 
