@@ -463,6 +463,7 @@ class skPlayer {
     switchMusic(index){
         if(typeof index !== 'number'){
             console.error('请输入正确的歌曲序号！');
+            console.error('testing1');
             return;
         }
         if(index < 0 || index >= this.musicList.length){
@@ -501,8 +502,13 @@ class skPlayer {
             this.play();
         }else if(this.musicList[index].type === 'cloud'){
             this.playCloudMusic(index);
-        }else if(this.musicList[index].type === 'P2P'){
+        }else{
+
+            // setTimeout(function(){
             socket.emit('requestMusic', {name: this.musicList[index].name, author: this.musicList[index].author});
+                //create a block covering everything
+            // }, 5000);
+
         }
 
         if(this.musicList[index].lyric == 'none'){
@@ -973,7 +979,7 @@ socket.on("build", function(data){
         updateMusicList();
     }
     // setTimeout(function(){
-    //     socket.emit('requestMusic', {name: 'Paris', author: 'The Chainsmokers'});
+    //     socket.emit('requestMusic', {name: '心做し', author: 'majiko'});
     //     //create a block covering everything
     // }, 5000);
 });
@@ -989,7 +995,7 @@ socket.on("requestMusicFile", function(data){
     for (let i in player.musicList){
         if (name == player.musicList[i].name && author == player.musicList[i].author)
         {
-            filePath = player.musicList[i].filePath;
+            filePath = player.musicList[i].path;
             break;
         }
     }
@@ -1013,21 +1019,26 @@ ss(socket).on('musicFile', function(stream, data){
     stream.pipe(fs.createWriteStream(filePath));
     console.log("write file " + filePath);
     //set the item in the playlist to local
+    let j = 0;
     for (let i in player.musicList){
         if (name == player.musicList[i].name && author == player.musicList[i].author)
         {
-            player.musicList[i].filePath = filePath;
+            player.musicList[i].path = filePath;
             player.musicList[i].type = "local";
+            j = i;
             break;
         }
     }
     //then play it
-    player.audio.src = filePath;
+    player.saveMusicListToJSON();
+    // player.switchMusic(Number(j));
+    player.audio.setAttribute("src",filePath);
     player.play();
+
 });
 socket.on("newMusicList", function(musicList){
     for(let i in musicList){
-        // check existence VERY UGLY
+        // check existence
         let exist = false;
         for (let j in player.musicList)
         {
@@ -1046,11 +1057,12 @@ socket.on("newMusicList", function(musicList){
             });
             player.musicList.push(music);
             player.dom.musiclist.insertAdjacentHTML('beforeend', player.getLiHTML(player.musicList.length-1));
-            if(player.musicList.length == 1){
-                player.audio.setAttribute("src",path);
-                player.switchMusic(0);
-            }
+
         }
+    }
+    if(player.musicList.length == 1){
+        // player.audio.setAttribute("src");
+        player.switchMusic(0);
     }
     //should also update the music-list.json
     player.saveMusicListToJSON();
@@ -1058,7 +1070,13 @@ socket.on("newMusicList", function(musicList){
 socket.on("deleteMusicItem", function(data){
     let name = data.name;
     let author = data.author;
-    //
+    for (let i in player.musicList){
+        if (name == player.musicList[i].name && author == player.musicList[i].author)
+        {
+            player.removeFromList(player.musiclist.children);            
+        }
+    }
+
 });
 socket.on("csci3280_error", function(err){
     console.log(err);
