@@ -505,13 +505,12 @@ class skPlayer {
             this.playCloudMusic(index);
         }else{
 
-            // setTimeout(function(){
+            console.log('send request to server');
             socket.emit('requestMusic', {name: this.musicList[index].name, author: this.musicList[index].author});
-                //create a block covering everything
-            // }, 5000);
 
         }
 
+        console.log("check lyric");
         if(this.musicList[index].lyric == 'none'){
             if(this.dom.lyricblock.classList.contains('skPlayer-lyric-in'))
                 this.dom.lyricblock.classList.remove('skPlayer-lyric-in')
@@ -522,6 +521,7 @@ class skPlayer {
             this.displayLyricFromFile(this.musicList[index].lyric,index);
         }
 
+        console.log("check video");
         if(!this.musicList[index].video){
             if(this.dom.lyricblock.classList.contains('skPlayer-video-in'))
                 this.root.classList.remove('skPlayer-video-in');
@@ -532,6 +532,7 @@ class skPlayer {
             }
             this.displayVideoFromFile(this.musicList[index].video,index);
         }
+        console.log("switch func finished");
     }
 
     play(){
@@ -733,7 +734,8 @@ class skPlayer {
         this.dom.musiclist.insertAdjacentHTML('beforeend', this.getLiHTML(this.musicList.length-1));
 
         if(this.musicList.length == 1){
-            this.audio.setAttribute("src",path);
+            if(type != 'P2P')
+                this.audio.setAttribute("src",path);
             this.switchMusic(0);
         }
         //should also update the music-list.json
@@ -893,7 +895,7 @@ class skPlayer {
             if(err)
                 console.log(err);
             else
-                console.log("write success");
+                console.log("write to local music list success");
         });
     }
 
@@ -1009,6 +1011,7 @@ socket.on("requestMusicFile", function(data){
     fs.createReadStream(filePath).pipe(stream);
 });
 ss(socket).on('musicFile', function(stream, data){
+    console.log("received file");
     let name = data.musicInfo.name;
     let author = data.musicInfo.author;
     let filename = data.filename;
@@ -1030,14 +1033,22 @@ ss(socket).on('musicFile', function(stream, data){
             break;
         }
     }
+
     //then play it
     player.saveMusicListToJSON();
     // player.switchMusic(Number(j));
-    player.audio.setAttribute("src",filePath);
-    player.play();
+    setTimeout(()=>{
+        console.log("after 1 sec");
+        console.log(filePath);
+        player.audio.setAttribute("src",filePath);
+        player.play();
+    },1000);
+
+
 
 });
 socket.on("newMusicList", function(musicList){
+
     for(let i in musicList){
         // check existence
         let exist = false;
@@ -1048,25 +1059,11 @@ socket.on("newMusicList", function(musicList){
             }
         }
         if (!exist){
-            let music = new Music({
-                type: 'P2P',
-                name: musicList[i].name,
-                path: 'none',
-                author: musicList[i].author,
-                cover: 'none',
-                lyric: 'none'
-            });
-            player.musicList.push(music);
-            player.dom.musiclist.insertAdjacentHTML('beforeend', player.getLiHTML(player.musicList.length-1));
+            //type,path,title,artist,cover
+            player.addMusicToList('P2P','none',musicList[i].name,musicList[i].author,default_cover_path);
 
         }
     }
-    if(player.musicList.length == 1){
-        // player.audio.setAttribute("src");
-        player.switchMusic(0);
-    }
-    //should also update the music-list.json
-    player.saveMusicListToJSON();
 });
 socket.on("deleteMusicItem", function(data){
     let name = data.name;

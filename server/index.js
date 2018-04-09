@@ -56,20 +56,23 @@ io.on( 'connection', function( socket ) {
     });
 
     socket.on('requestMusic', function(musicInfo){
-        //let name = musicInfo.name;
-        //let author = musicInfo.author;
+        let name = musicInfo.name;
+        let author = musicInfo.author;
+        console.log(socket.id + " requests a music named " + name);
 
         let MusicItemCollection = mongoose.model('MusicItem', MusicItemSchema);
         MusicItemCollection.find(musicInfo, function(err, foundItems){
             if(foundItems.length == 0){
-                socket.emit('csci3280_error', 'not found music');
+                console.log("not found music in db");
+                socket.emit('csci3280_error', 'not found music: ' + musicInfo.name + ' - ' + musicInfo.author);
                 return;
             }
             let owner_id = foundItems[0].owner_id;
-            console.log(owner_id);
+            console.log("found owner id: " + owner_id);
             let ns = io.of('/');
-            let owner_socket = ns.connected[socket.id];
+            let owner_socket = ns.connected[owner_id];
             if(owner_socket == null || typeof owner_socket == typeof undefined){
+                console.log("not found owner");
                 socket.emit('csci3280_error', 'not found owner');
                 return;
             }
