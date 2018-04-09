@@ -1086,7 +1086,7 @@ ipcRenderer.on('ip:set', function(e, ip){
         for (let i in player.musicList){
             if (name == player.musicList[i].name && author == player.musicList[i].author)
             {
-                player.removeFromList(player.musiclist.children[i]);
+                player.removeFromList(player.dom.musiclist.children[i]);
             }
         }
 
