@@ -39,15 +39,20 @@ io.on( 'connection', function( socket ) {
     //all clients in one room for simple
     socket.join(socket.id);
     socket.emit('setID', socket.id);
-
     socket.emit('build', 'success');
+    let ns = io.of('/');
+    for(let i in ns.connected){
+        if(ns.connected[i].id != socket.id){
+            ns.connected[i].emit("requestMusicList", {});
+        }
+    }
 
     socket.on('updateClientList', function(musicList){
         console.log("broadcast the client's playlist");
+        if(musicList.length == 0) return;
         for(let i in musicList){
             recordMusicIntoDB(musicList[i], socket.id);
         }
-        let ns = io.of('/');
         for(let i in ns.connected){
             if(ns.connected[i].id != socket.id){
                 ns.connected[i].emit("newMusicList", musicList);
@@ -69,7 +74,6 @@ io.on( 'connection', function( socket ) {
             }
             let owner_id = foundItems[0].owner_id;
             console.log("found owner id: " + owner_id);
-            let ns = io.of('/');
             let owner_socket = ns.connected[owner_id];
             if(owner_socket == null || typeof owner_socket == typeof undefined){
                 console.log("not found owner");
@@ -94,7 +98,13 @@ io.on( 'connection', function( socket ) {
         ss(requestor_socket).emit('musicFile', outgoingstream, data);
         incomingstream.pipe(outgoingstream);
     });
-
+    socket.on('deleteMusicItem', function(musicInfo){
+        for(let i in ns.connected){
+            if(ns.connected[i].id != socket.id){
+                ns.connected[i].emit("deleteMusicItem", musicInfo);
+            }
+        }
+    });
     socket.on('disconnect', function(){
         console.log("Client #"+socket.id+" left");
         let MusicItemCollection = mongoose.model('MusicItem', MusicItemSchema);

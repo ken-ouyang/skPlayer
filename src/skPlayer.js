@@ -740,14 +740,17 @@ class skPlayer {
         }
         //should also update the music-list.json
         this.saveMusicListToJSON();
-        updateMusicList();
+        if(type != 'P2P');
+            updateMusicList();
     }
 
 	//done
 	removeFromList(node){
 		let nodeCurr = node;
-        console.log(nodeCurr);
-        console.log(nodeCurr.nextElementSibling);
+        let name = node.querySelector('>.skPlayer-list-name').innerHTML;
+        let author = node.querySelector('>.skPlayer-list-author').innerHTML;
+        deleteMusicItem({name:name,author:author});
+
 		let nodeAfter;
 		while ((nodeAfter = nodeCurr.nextElementSibling)){
 			let indexNode = nodeAfter.querySelector('.skPlayer-list-index');
@@ -772,7 +775,6 @@ class skPlayer {
 		}
 
         this.saveMusicListToJSON();
-        updateMusicList();
 	}
 
 	//done
@@ -975,6 +977,10 @@ const updateMusicList = () => {
     if(socket_connected)
         socket.emit('updateClientList', player.musicList);
 }
+const deleteMusicItem = (musicInfo) => {
+    if(socket_connected)
+        socket.emit('deleteMusicItem', musicInfo);
+}
 
 module.exports = skPlayer;
 
@@ -988,6 +994,9 @@ ipcRenderer.on('ip:set', function(e, ip){
         if(data == "success"){
             updateMusicList();
         }
+    });
+    socket.on("requestMusicList", function(data){
+        updateMusicList();
     });
     socket.on("requestMusicFile", function(data){
         console.log("accept request from server and the requestor is " + data.requestor_id);
