@@ -670,19 +670,24 @@ class skPlayer {
 
 	//done
 	clearList(){
-		this.dom.musiclist.innerHTML = '';
-        this.dom.lyricul.innerHTML = "";
-        if(this.dom.lyricblock.classList.contains('skPlayer-lyric-in'))
-            this.dom.lyricblock.classList.remove('skPlayer-lyric-in');
-        if(this.root.classList.contains('skPlayer-video-in')){
-            this.root.classList.remove('skPlayer-video-in');
-            this.dom.videoplayer.children[0].setAttribute("src","");
-            this.dom.videoplayer.load();
+		// this.dom.musiclist.innerHTML = '';
+        // this.dom.lyricul.innerHTML = "";
+        // if(this.dom.lyricblock.classList.contains('skPlayer-lyric-in'))
+        //     this.dom.lyricblock.classList.remove('skPlayer-lyric-in');
+        // if(this.root.classList.contains('skPlayer-video-in')){
+        //     this.root.classList.remove('skPlayer-video-in');
+        //     this.dom.videoplayer.children[0].setAttribute("src","");
+        //     this.dom.videoplayer.load();
+        // }
+		// this.musicList = [];
+        let musiclist = this.dom.musiclist.children;
+        for(let i=musiclist.length-1;i>=0;i--){
+            this.removeFromList(musiclist[i]);
         }
-		this.musicList = [];
-        this.saveMusicListToJSON();
+
+        // this.saveMusicListToJSON();
 		this.pause();
-        updateMusicList();
+        // updateMusicList();
 	}
 
 	//done
@@ -747,8 +752,8 @@ class skPlayer {
 	//done
 	removeFromList(node){
 		let nodeCurr = node;
-        let name = node.querySelector('>.skPlayer-list-name').innerHTML;
-        let author = node.querySelector('>.skPlayer-list-author').innerHTML;
+        let name = node.querySelector('.skPlayer-list-name').innerHTML;
+        let author = node.querySelector('.skPlayer-list-author').innerHTML;
         deleteMusicItem({name:name,author:author});
 
 		let nodeAfter;
