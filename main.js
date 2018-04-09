@@ -42,10 +42,11 @@ function createWindow () {
 // Some APIs can only be used after this event occurs.
 app.on('ready', function(){
     createWindow()
-    // Build menu from template
-    const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
-    // Insert menu
-    Menu.setApplicationMenu(mainMenu)})
+    // // Build menu from template
+    // const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+    // // Insert menu
+    // Menu.setApplicationMenu(mainMenu)
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -62,10 +63,11 @@ app.on('activate', function () {
   if (mainWindow === null) {
     createWindow()
   }
-  // Build menu from template
-  const mainMenu = Menu.buildFromTemplate(mainMenuTemplate)
-  // Insert menu
-  Menu.setApplicationMenu(mainMenu)})
+  // // Build menu from template
+  // const mainMenu = Menu.buildFromTemplate(mainMenuTemplate)
+  // // Insert menu
+  // Menu.setApplicationMenu(mainMenu)
+})
 
 
 // Create menu template

@@ -501,6 +501,8 @@ class skPlayer {
             this.play();
         }else if(this.musicList[index].type === 'cloud'){
             this.playCloudMusic(index);
+        }else if(this.musicList[index].type === 'P2P'){
+            socket.emit('requestMusic', {name: this.musicList[index].name, author: this.musicList[index].author});
         }
 
         if(this.musicList[index].lyric == 'none'){
@@ -960,8 +962,6 @@ class skPlayer {
     }
 }
 
-
-
 const updateMusicList = () => {
     socket.emit('updateClientList', player.musicList);
 }
@@ -972,10 +972,10 @@ socket.on("build", function(data){
     if(data == "success"){
         updateMusicList();
     }
-    setTimeout(function(){
-        socket.emit('requestMusic', {name: 'Paris', author: 'The Chainsmokers'});
-        //create a block covering everything
-    }, 5000);
+    // setTimeout(function(){
+    //     socket.emit('requestMusic', {name: 'Paris', author: 'The Chainsmokers'});
+    //     //create a block covering everything
+    // }, 5000);
 });
 
 
@@ -985,9 +985,15 @@ socket.on("requestMusicFile", function(data){
     let name = data.musicInfo.name;
     let author = data.musicInfo.author;
     let stream = ss.createStream();
-
-    //!!!!change the file path refering to the name and author
-    let filePath = "/Users/a1/Desktop/TANG/Github/skPlayer/paris.mp3";
+    let filePath = "";
+    for (let i in player.musicList){
+        if (name == player.musicList[i].name && author == player.musicList[i].author)
+        {
+            filePath = player.musicList[i].filePath;
+            break;
+        }
+    }
+    // console.log(filePath);
     ss(socket).emit('musicFile', stream, {
         requestor_id: data.requestor_id,
         musicInfo: data.musicInfo,
@@ -1007,13 +1013,47 @@ ss(socket).on('musicFile', function(stream, data){
     stream.pipe(fs.createWriteStream(filePath));
     console.log("write file " + filePath);
     //set the item in the playlist to local
-
+    for (let i in player.musicList){
+        if (name == player.musicList[i].name && author == player.musicList[i].author)
+        {
+            player.musicList[i].filePath = filePath;
+            player.musicList[i].type = "local";
+            break;
+        }
+    }
     //then play it
-
+    player.audio.src = filePath;
+    player.play();
 });
 socket.on("newMusicList", function(musicList){
-    //update music list
-
+    for(let i in musicList){
+        // check existence VERY UGLY
+        let exist = false;
+        for (let j in player.musicList)
+        {
+            if (musicList[i].name == player.musicList[j].name && musicList[i].author == player.musicList[j].author){
+                exist = true;
+            }
+        }
+        if (!exist){
+            let music = new Music({
+                type: 'P2P',
+                name: musicList[i].name,
+                path: musicList[i].path,
+                author: musicList[i].author,
+                cover: 'none',
+                lyric: 'none'
+            });
+            player.musicList.push(music);
+            player.dom.musiclist.insertAdjacentHTML('beforeend', player.getLiHTML(player.musicList.length-1));
+            if(player.musicList.length == 1){
+                player.audio.setAttribute("src",path);
+                player.switchMusic(0);
+            }
+        }
+    }
+    //should also update the music-list.json
+    player.saveMusicListToJSON();
 });
 socket.on("deleteMusicItem", function(data){
     let name = data.name;
